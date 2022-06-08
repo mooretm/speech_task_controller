@@ -1,4 +1,5 @@
 # tk inter imports
+from lib2to3.pgen2.token import STAR
 import tkinter as tk
 from tkinter import Toplevel, ttk
 from tkinter import font
@@ -18,6 +19,8 @@ from pandastable import Table
 # audio imports
 from scipy.io import wavfile
 import sounddevice as sd
+#import warnings
+#warnings.filterwarnings("ignore", message="Chunk (non-data) not understood ")
 # import my library
 sys.path.append('.\\lib') # Point to custom library file
 import tmsignals as ts # Custom library
@@ -241,7 +244,6 @@ def list_audio_devs():
         try:
             sndDevice = int(entDeviceID.get())
             sd.default.device = sndDevice
-
             # make a text file to save data
             dataFile = _thisDir + os.sep + 'etc' + os.sep + 'Sound_Device.csv'
             with open(dataFile, 'w', newline='') as f:
@@ -400,7 +402,7 @@ def mnuCalibrate():
 def mnuAbout2():
     showinfo(
         title='About Speech Task Controller',
-        message="Version: 1.1.0\nWritten by: Travis M. Moore\nCreated: 06/02/2022\nLast Updated: 06/07/2022")
+        message="Version: 1.1.1\nWritten by: Travis M. Moore\nCreated: 06/02/2022\nLast Updated: 06/08/2022")
 
 
 def mnuHelp():
@@ -547,12 +549,11 @@ lblScore = ttk.Label(frmScore, textvariable=score_text, font=myFont) # padding=1
 lblScore.grid(column=0, row=0, sticky="e", **options)
 score_text.set('0 of 0 = 0.0% correct')
 
-# Words
-# Process current sentence for presentation and scoring.
+
 def play_audio():
     """ Presents current audio file.
     """
-    global STARTING_LEVEL
+    #global STARTING_LEVEL
     audio_path = ('.\\audio\\IEEE\\')
     myFile = fileList[list_counter]
     myFilePath = audio_path + myFile
@@ -585,6 +586,15 @@ def score(resp_val):
     global SLM_OFFSET
     global SLM_Reading
     global STARTING_LEVEL
+
+
+    try: 
+        STARTING_LEVEL = STARTING_LEVEL
+    except:
+        print("Retrieving starting level...")
+        device_check()
+        cal_check()
+        print(f"Found start level of: {round(STARTING_LEVEL,2)}")
 
     # Try scoring if there has been a response
     try:
@@ -629,12 +639,13 @@ def score(resp_val):
         score_text.set(f'{cor_count} of {total_count} = {round(percent_cor,1)}% correct')
         lblTrial.config(text=f'Trial {total_count} of {len(fileList)}')
         #print(theScores)
-
+        print("Try: Scored Responses")
     except:
-        device_check()
-        cal_check() # do this here because it's as early as possible in a try: that fails on first run
-        pass
+        print("Except: Couldn't score because there were no values yet")
+        # No values to score, which means this is the first iteration
 
+
+    # Destroy labels and checkboxes, if they exist yet
     try:
         list_of_lbls = list(filter(None, list_of_lbls))
         list_of_chkboxes = list(filter(None, list_of_chkboxes))
@@ -645,12 +656,16 @@ def score(resp_val):
         for widget in list_of_lbls:
             widget.destroy()
 
+        # Increment list counter to move to next list
         list_counter += 1
+        print("Try: Destroyed checkboxes and labels")
     except:
+        print("Except: Nothing to destroy on first iteration")
         pass
 
-    #### Text and checkbox display ####
-    if list_counter > len(sentences)-1:
+
+    # Write data to file BEFORE loading sentences at end of list
+    try:
         with open(dataFile, 'a', newline='') as f:
             writer = csv.writer(f)
             writer.writerow([str(expInfo['subject']), 
@@ -659,10 +674,47 @@ def score(resp_val):
                 str(round(percent_cor,2)), str(SLM_Reading), 
                 str(REF_LEVEL), str(SLM_OFFSET), str(STARTING_LEVEL),
                 str(SLM_OFFSET+STARTING_LEVEL)])
-        showinfo(title='All done!', 
-            message="Task complete!\nFinal score: " + str(percent_cor) + "%")
+
+        print("Wrote data to file")
+        print(f"Wrote level: {round(STARTING_LEVEL,2)}")
+
+
+        if list_counter > len(sentences)-1:
+            print("That was the last trial!")
+            showinfo(title='All done!', 
+                message="Task complete!\nFinal score: " + str(percent_cor) + "%")
+            quit() # this quit doesn't seem to work
+    except: 
+        pass
+    # Quit doesn't seem to work inside the try/except test,
+    # so I'm putting it on its own. 
+    if list_counter > len(sentences)-1:
         quit()
 
+
+    # Update STARTING_LEVEL based on button click
+    if btn_right.cget('text') == "Start":
+        print(f"Running with original level: {round(STARTING_LEVEL,2)}")
+    else:
+        print("Updating level...")
+        if resp_val == "right":
+            print(f'Try: previous level: {round(STARTING_LEVEL,2)}')
+            STARTING_LEVEL = float(STARTING_LEVEL) - float(ent_right.get())
+            print(f'Try: adjusted level: {round(STARTING_LEVEL,2)}')
+        elif resp_val == "wrong":
+            print(f'Try: previous level: {round(STARTING_LEVEL,2)}')
+            STARTING_LEVEL = float(STARTING_LEVEL) + float(ent_wrong.get())
+            print(f'Try: adjusted level: {round(STARTING_LEVEL,2)}')
+        elif resp_val == "fixed":
+            pass
+
+    # Update start button text as a flat the first iteration 
+    # has occurred
+    btn_right.config(text="Right")
+
+
+    #### Text and checkbox display ####
+    print("Adding labels and checkboxes")
     theText = ''.join(sentences.iloc[list_counter]) # using pandas, ['the dog is fast']
     words = theText.split() # ['the' 'dog' 'is' 'fast']
     nums = np.arange(0,len(words)) # index to ensure each word is a unique key
@@ -698,39 +750,15 @@ def score(resp_val):
             list_of_lbls.append(theWords)
 
     # Present the current audio file
+    print(f"Playing audio at {round(STARTING_LEVEL,2)} dB")
     play_audio()
 
-    try:
-        with open(dataFile, 'a', newline='') as f:
-            writer = csv.writer(f)
-            writer.writerow([str(expInfo['subject']), 
-                str(expInfo['condition']), str(expInfo['lists']),
-                str(words_incor), str(words_cor), str(num_corr),
-                str(round(percent_cor,2)), str(SLM_Reading), 
-                str(REF_LEVEL), str(SLM_OFFSET), str(STARTING_LEVEL),
-                str(SLM_OFFSET+STARTING_LEVEL)])
-
-        # Update STARTING_LEVEL based on button click
-        if resp_val == "right":
-            print(f'Try: previous level: {STARTING_LEVEL}')
-            STARTING_LEVEL = float(STARTING_LEVEL) - float(ent_right.get())
-            print(f'Try: adjusted level: {STARTING_LEVEL}')
-        elif resp_val == "wrong":
-            print(f'Try: previous level: {STARTING_LEVEL}')
-            STARTING_LEVEL = float(STARTING_LEVEL) + float(ent_wrong.get())
-            print(f'Try: adjusted level: {STARTING_LEVEL}')
-        elif resp_val == "fixed":
-            pass
-
-    except:
-        #print("Nothing written to file!")
-        print(f'Starting level: {STARTING_LEVEL}')
-        pass
+    print("End of iteration\n")
 
 
 def do_right():
     btn_wrong.config(state='enabled')
-    btn_right.config(text="Right")
+    #btn_right.config(text="Right") # Moved to score function as test for first iteration
     score("right")
 
 
