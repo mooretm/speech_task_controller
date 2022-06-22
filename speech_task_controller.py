@@ -1,5 +1,4 @@
 # tk inter imports
-from lib2to3.pgen2.token import STAR
 import tkinter as tk
 from tkinter import Toplevel, ttk
 from tkinter import font
@@ -750,7 +749,7 @@ def score(resp_val):
             list_of_lbls.append(theWords)
 
     # Present the current audio file
-    print(f"Playing audio at {round(STARTING_LEVEL,2)} dB")
+    print(f"Playing audio at {round(STARTING_LEVEL,2)}")
     play_audio()
 
     print("End of iteration\n")
