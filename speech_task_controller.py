@@ -6,13 +6,13 @@ from tkinter import Menu
 from tkinter.messagebox import askyesno
 from tkinter.messagebox import showinfo
 from tkinter.messagebox import showwarning
-from tkinter import filedialog
 
 # system imports
 import os
 import sys
 import csv
 from datetime import datetime
+import time
 
 # data science imports
 import numpy as np
@@ -144,6 +144,8 @@ global STARTING_LEVEL
 global sndDevice
 global level_tracker
 level_tracker = []
+global TASK_MODE
+TASK_MODE = 'adaptive'
 
 
 #########################
@@ -328,8 +330,6 @@ def list_audio_devs():
     #root.attributes('-topmost',1)
     window_width = audDev_win.winfo_width()
     window_height = audDev_win.winfo_height()
-    #window_width = 600
-    #window_height=200
     # get the screen dimension
     screen_width = audDev_win.winfo_screenwidth()
     screen_height = audDev_win.winfo_screenheight()
@@ -354,9 +354,6 @@ def mnuCalibrate():
         cal_file = ('.\\calibration\\IEEE_cal.wav')
         # Import audio and convert data type
         fs, myTarget, file_name = import_stim_file(cal_file)
-
-        #[fs, myTarget] = wavfile.read(cal_file)
-        #myTarget = ts.doNormalize(myTarget,48000)
         myTarget = ts.setRMS(myTarget,REF_LEVEL,eq='n')
         sigdur = len(myTarget) / fs
         sd.wait(sigdur)
@@ -477,14 +474,10 @@ root.config(menu=menubar)
 # create the File menu
 file_menu = Menu(menubar, tearoff=False)
 # add menu items to the File menu
-# file_menu.add_command(
-#     label='New Session'
-#     #command=startup_win
-# )
 file_menu.add_command(
     label="Adaptive",
-    #command=lambda: frmBtnAdapt.tkraise()
     command=lambda: [frmBtn.grid_forget(), frmBtnAdapt.grid(column=0, row=1, sticky="sw", **options), root.geometry("642x236")]
+    #command=lambda: [frmBtn.destroy(), frmBtnAdapt.grid(column=0, row=1, sticky="sw", **options), root.geometry("642x236")]
 )
 file_menu.add_command(
     label="Fixed",
@@ -540,10 +533,6 @@ menubar.add_cascade(
 myFont = font.nametofont('TkDefaultFont').configure(size=10)
 options = {'padx':10, 'pady':10}
 #options_word = {'padx':0, 'pady':0}
-
-# Frames for widget positioning
-#frmStatus = ttk.Frame(root)
-#frmStatus.grid(column=0, columnspan=2, row=0, **options)
 
 frmSentence = ttk.LabelFrame(root, text='Sentence:', width=500, height=60)
 frmSentence.grid(column=0, columnspan=2, row=0, sticky='nsew', **options, ipady=10)
@@ -725,15 +714,20 @@ def score(resp_val):
         # Display data to user after final iteration
         if list_counter > len(sentences)-1:
             print("That was the last trial!")
-            showinfo(title="Task complete!", 
-                #message="Task complete!\nFinal score: " + str(percent_cor) + "%")
-                message="SNR50: " + str(np.mean(level_tracker)) + " dB")
-            quit() # this quit doesn't seem to work
+            if TASK_MODE == 'adaptive':
+                showinfo(title="Task complete!", 
+                    #message="Final score: " + str(percent_cor) + "%")
+                    message="SNR50: " + str(np.mean(level_tracker)) + " dB")
+            elif TASK_MODE == 'fixed':
+                showinfo(title="Task complete!", 
+                    message="Final score: " + str(percent_cor) + "%")
+                    #message="SNR50: " + str(np.mean(level_tracker)) + " dB")
     except: 
         pass
     # Quit doesn't seem to work inside the try/except test,
     # so I'm putting it on its own. 
     if list_counter > len(sentences)-1:
+        print("Using second quit")
         quit()
 
     # Update STARTING_LEVEL based on button click
@@ -795,29 +789,50 @@ def score(resp_val):
     # Present the current audio file
     print(f"Playing audio at {round(STARTING_LEVEL,2)}")
     param_lbl_list[3].config(text="Level: " + str(SLM_OFFSET+STARTING_LEVEL))
+
+    # btn_right.config(state='disabled')
+    # btn_right.update()
+    # btn_wrong.config(state='disabled')
+    # btn_wrong.update()
+    # btnNext.config(state='disabled')
+    # btnNext.update()
+
     play_audio()
+
+    # btn_right.config(state='enabled')
+    # btn_right.update()
+    # btn_wrong.config(state='enabled')
+    # btn_wrong.update()
+    # btnNext.config(state='enabled')
+    # btnNext.update()
 
     print("End of iteration\n")
 
 
 def do_right():
+    global TASK_MODE
     btn_wrong.config(state='enabled')
+    TASK_MODE='adaptive'
     score("right")
 
 
 def do_wrong():
+    global TASK_MODE
+    TASK_MODE='adaptive'
     score("wrong")
 
 
 def do_fixed():
     #wait_var.set(1)
+    global TASK_MODE
+    TASK_MODE='fixed'
     btnNext.config(text="Next")
     score("fixed")
 
 
 # Buttons
 # Adaptive task buttons
-btn_right = ttk.Button(frmBtnAdapt, text="Start", command=do_right)
+btn_right = ttk.Button(frmBtnAdapt, text="Start", state='enabled', command=do_right)
 btn_right.grid(column=0, row=1)
 btn_wrong = ttk.Button(frmBtnAdapt, text="Wrong", state='disabled', command=do_wrong)
 btn_wrong.grid(column=0, row=2)
