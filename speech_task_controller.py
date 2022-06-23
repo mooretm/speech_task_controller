@@ -138,7 +138,7 @@ incor_count = 0
 #global img
 #img = ".\\assets\\temp.ico"
 global REF_LEVEL
-REF_LEVEL = -20.0
+REF_LEVEL = -30.0
 global SLM_Reading
 global STARTING_LEVEL
 global sndDevice
@@ -349,6 +349,7 @@ def mnuCalibrate():
         test and creates a correction factor based off the 
         entered SLM reading.
     """
+    device_check()
     def playCalStim():
         # Calibration file location
         cal_file = ('.\\calibration\\IEEE_cal.wav')
@@ -811,6 +812,7 @@ def score(resp_val):
 
 def do_right():
     global TASK_MODE
+    device_check()
     btn_wrong.config(state='enabled')
     TASK_MODE='adaptive'
     score("right")
@@ -823,6 +825,7 @@ def do_wrong():
 
 
 def do_fixed():
+    device_check()
     #wait_var.set(1)
     global TASK_MODE
     TASK_MODE='fixed'
