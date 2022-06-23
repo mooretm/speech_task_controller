@@ -61,7 +61,7 @@ def deg2rad(deg):
         return rads
 
 
-def doFFT(sig,fs):
+def doFFT(sig,fs,N=2048):
     """
         Wrapper function for scipy rfft. Calculate 
         a single-sided fast Fourier transform for a 
@@ -82,8 +82,8 @@ def doFFT(sig,fs):
         combo = sig[0] + sig[1]
         sig = combo / combo.max() # normalize
 
-    N = len(sig)
-    yf = rfft(sig)
+    #N = len(sig)
+    yf = rfft(sig, N)
     xf = rfftfreq(N, 1/fs)
     #plt.plot(xf,yf)
     #plt.show()
@@ -135,6 +135,11 @@ def doLocatePeak():
     pass
 
 
+
+
+
+
+
 def doLoop(sig,numreps,sildur,fs=48000):
     """ Make a train consisting of NUMREPS of repetitions 
         of a given signal SIG separated by silence (i.e.,
@@ -181,13 +186,23 @@ def doNormalize(sig,fs=48000):
 
         Written by: Travis M. Moore
         Created: May 23, 2022
-        Last Edited: May 23, 2022
+        Last Edited: Jun 20, 2022
     """
-    sig = sig-np.min(sig)
-    denom = np.max(sig) - np.min(sig)
-    sig = sig/denom
-    sig = sig * 2
-    sig = sig -1
+    # DEPRECATED
+    # This method, best case scenario, requires additional 
+    # zeroing, and worst case scenario alters (stretches) 
+    # the signal to fit between -1 and 1. It's fine to 
+    # "normalize" to 1 or -1 and be done. 
+    # sig = np.float64(sig) # must specify dtype to avoid overflow
+    # #sig = sig-np.min(sig) # have to remove DC offset first
+    # denom = np.max(sig) - np.min(sig)
+    # sig = sig/denom
+    # sig = sig * 2
+    # sig = sig -1
+    # return sig
+
+    sig = sig - np.mean(sig) # remove DC offset
+    sig = sig / np.max(abs(sig)) # normalize
     return sig
 
 

@@ -6,20 +6,25 @@ from tkinter import Menu
 from tkinter.messagebox import askyesno
 from tkinter.messagebox import showinfo
 from tkinter.messagebox import showwarning
-# system type imports
+from tkinter import filedialog
+
+# system imports
 import os
 import sys
 import csv
 from datetime import datetime
+
 # data science imports
 import numpy as np
 import pandas as pd
 from pandastable import Table
+
 # audio imports
 from scipy.io import wavfile
 import sounddevice as sd
 #import warnings
 #warnings.filterwarnings("ignore", message="Chunk (non-data) not understood ")
+
 # import my library
 sys.path.append('.\\lib') # Point to custom library file
 import tmsignals as ts # Custom library
@@ -77,6 +82,40 @@ now = datetime.now()
 expInfo['stamp'] = now.strftime("%Y_%b_%d_%H%M")
 
 
+def import_stim_file(file_name):
+    """ Select file using system file dialog 
+        and read it into a dictionary.
+    """
+    global audio_dtype
+    global audio_file
+    global wav_dict
+    # Dictionary of data types and ranges
+    wav_dict = {
+        'float32': (-1.0, 1.0),
+        'int32': (-2147483648, 2147483647),
+        'int16': (-32768, 32767),
+        'uint8': (0, 255)
+    }
+
+    #file_name = filedialog.askopenfilename(initialdir=_thisDir)
+    fs, audio_file = wavfile.read(file_name)
+    audio_dtype = np.dtype(audio_file[0])
+    print(f"Incoming data type: {audio_dtype}")
+
+    # Immediately convert to float64 for manipulating
+    if audio_dtype == 'float64':
+        pass
+    else:
+        # 1. Convert to float64
+        audio_file = audio_file.astype(np.float64)
+        forced_audio_type = np.dtype(audio_file[0])
+        print(f"Forced audio data type: {forced_audio_type}")
+        # 2. Divide by original dtype max val
+        audio_file = audio_file / wav_dict[str(audio_dtype)][1]
+
+    return fs, audio_file, file_name
+
+
 #####################
 #### GLOBAL VARS ####
 #####################
@@ -103,6 +142,8 @@ REF_LEVEL = -20.0
 global SLM_Reading
 global STARTING_LEVEL
 global sndDevice
+global level_tracker
+level_tracker = []
 
 
 #########################
@@ -309,10 +350,13 @@ def mnuCalibrate():
         entered SLM reading.
     """
     def playCalStim():
+        # Calibration file location
         cal_file = ('.\\calibration\\IEEE_cal.wav')
-        #status.set(myFilePath[-7:])
-        [fs, myTarget] = wavfile.read(cal_file)
-        myTarget = ts.doNormalize(myTarget,48000)
+        # Import audio and convert data type
+        fs, myTarget, file_name = import_stim_file(cal_file)
+
+        #[fs, myTarget] = wavfile.read(cal_file)
+        #myTarget = ts.doNormalize(myTarget,48000)
         myTarget = ts.setRMS(myTarget,REF_LEVEL,eq='n')
         sigdur = len(myTarget) / fs
         sd.wait(sigdur)
@@ -401,7 +445,7 @@ def mnuCalibrate():
 def mnuAbout2():
     showinfo(
         title='About Speech Task Controller',
-        message="Version: 1.1.1\nWritten by: Travis M. Moore\nCreated: 06/02/2022\nLast Updated: 06/08/2022")
+        message="Version: 1.2.1\nWritten by: Travis M. Moore\nCreated: 06/02/2022\nLast Updated: 06/23/2022")
 
 
 def mnuHelp():
@@ -525,11 +569,13 @@ frmTrials.grid(column=0, row=2, sticky='w',  **options)
 
 # Display parameters in parameter frame
 keys = list(expInfo.keys())
+param_lbl_list = []
 for idx, param in enumerate(expInfo):
     if param == 'stamp':
         pass
     else:
         lblLabel = ttk.Label(frmParams, text=keys[idx].capitalize() + ': ' + str(expInfo[param]))
+        param_lbl_list.append(lblLabel)
         lblLabel.grid(column=0, row=idx, sticky='w')
 
 # Display trial number
@@ -552,13 +598,14 @@ score_text.set('0 of 0 = 0.0% correct')
 def play_audio():
     """ Presents current audio file.
     """
-    #global STARTING_LEVEL
+    # Define next audio file path
     audio_path = ('.\\audio\\IEEE\\')
     myFile = fileList[list_counter]
     myFilePath = audio_path + myFile
-    #status.set(myFilePath[-7:])
-    [fs, myTarget] = wavfile.read(myFilePath)
-    myTarget = ts.doNormalize(myTarget,48000)
+    # Import audio and convert data type
+    fs, myTarget, file_name = import_stim_file(myFilePath)
+    #[fs, myTarget] = wavfile.read(myFilePath)
+    #myTarget = ts.doNormalize(myTarget,48000)
     myTarget = ts.setRMS(myTarget,STARTING_LEVEL,eq='n')
     sigdur = len(myTarget) / fs
     sd.wait(sigdur)
@@ -585,7 +632,6 @@ def score(resp_val):
     global SLM_OFFSET
     global SLM_Reading
     global STARTING_LEVEL
-
 
     try: 
         STARTING_LEVEL = STARTING_LEVEL
@@ -626,6 +672,8 @@ def score(resp_val):
         # Criterion: all keywords must have been correctly identified
         if all(ele > 0 for ele in theScores):
             cor_count += 1
+            level_tracker.append(SLM_OFFSET+STARTING_LEVEL)
+            print(f"Correct! Adding {SLM_OFFSET+STARTING_LEVEL} to average")
         else:
             incor_count += 1
 
@@ -642,7 +690,6 @@ def score(resp_val):
     except:
         print("Except: Couldn't score because there were no values yet")
         # No values to score, which means this is the first iteration
-
 
     # Destroy labels and checkboxes, if they exist yet
     try:
@@ -662,7 +709,6 @@ def score(resp_val):
         print("Except: Nothing to destroy on first iteration")
         pass
 
-
     # Write data to file BEFORE loading sentences at end of list
     try:
         with open(dataFile, 'a', newline='') as f:
@@ -673,15 +719,15 @@ def score(resp_val):
                 str(round(percent_cor,2)), str(SLM_Reading), 
                 str(REF_LEVEL), str(SLM_OFFSET), str(STARTING_LEVEL),
                 str(SLM_OFFSET+STARTING_LEVEL)])
-
         print("Wrote data to file")
         print(f"Wrote level: {round(STARTING_LEVEL,2)}")
 
-
+        # Display data to user after final iteration
         if list_counter > len(sentences)-1:
             print("That was the last trial!")
-            showinfo(title='All done!', 
-                message="Task complete!\nFinal score: " + str(percent_cor) + "%")
+            showinfo(title="Task complete!", 
+                #message="Task complete!\nFinal score: " + str(percent_cor) + "%")
+                message="SNR50: " + str(np.mean(level_tracker)) + " dB")
             quit() # this quit doesn't seem to work
     except: 
         pass
@@ -689,7 +735,6 @@ def score(resp_val):
     # so I'm putting it on its own. 
     if list_counter > len(sentences)-1:
         quit()
-
 
     # Update STARTING_LEVEL based on button click
     if btn_right.cget('text') == "Start":
@@ -710,7 +755,6 @@ def score(resp_val):
     # Update start button text as a flat the first iteration 
     # has occurred
     btn_right.config(text="Right")
-
 
     #### Text and checkbox display ####
     print("Adding labels and checkboxes")
@@ -750,6 +794,7 @@ def score(resp_val):
 
     # Present the current audio file
     print(f"Playing audio at {round(STARTING_LEVEL,2)}")
+    param_lbl_list[3].config(text="Level: " + str(SLM_OFFSET+STARTING_LEVEL))
     play_audio()
 
     print("End of iteration\n")
@@ -757,7 +802,6 @@ def score(resp_val):
 
 def do_right():
     btn_wrong.config(state='enabled')
-    #btn_right.config(text="Right") # Moved to score function as test for first iteration
     score("right")
 
 
