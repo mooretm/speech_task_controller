@@ -662,10 +662,14 @@ def score(resp_val):
         # Criterion: all keywords must have been correctly identified
         if all(ele > 0 for ele in theScores):
             cor_count += 1
-            level_tracker.append(SLM_OFFSET+STARTING_LEVEL)
+            #level_tracker.append(SLM_OFFSET+STARTING_LEVEL) # only averaging correct levels is incorrect!
             print(f"Correct! Adding {SLM_OFFSET+STARTING_LEVEL} to average")
         else:
             incor_count += 1
+
+        # Store all levels for averaging 
+        # to calculate SNR50 speech level
+        level_tracker.append(SLM_OFFSET+STARTING_LEVEL)
 
         total_count = cor_count + incor_count
         try:
