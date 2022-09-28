@@ -16,18 +16,25 @@ from tkinter.messagebox import askyesno, showinfo, showwarning
 import numpy as np
 import pandas as pd
 
+# Import system packages
+import os
+import sys
+
 # Import custom modules
 from lib import tmsignals as ts
 import importlib 
 importlib.reload(ts) # Reload custom module on every run
 # Menu imports
-from mainmenu import MainMenu
+from menus import mainmenu as menu_main
 # Model imports
-from models import sessionpars as m_sesspars
+from models import sessionmodel as m_sesspars
+from models import audiomodel as m_audio
+from models import csvmodel as m_csv
 # View imports
-from views import calibration as v_cal
+from views import main as v_main
 from views import session as v_sess
 from views import audio as v_aud
+from views import calibration as v_cal
 
 
 #########
@@ -45,13 +52,24 @@ class Application(tk.Tk):
         ######################################
         # Initialize Models, Menus and Views #
         ######################################
+        # Track number of trials
+        self.counter = 0
+
         # Load current session parameters from file
         # Or load defaults if file does not exist yet
         self.sessionpars_model = m_sesspars.SessionParsModel()
         self._load_sessionpars()
 
+        # Load CSV writer model
+        self.csvmodel = m_csv.CSVModel(self.sessionpars)
+
+        # Load main view
+        #self.main_frame = v_main.MainFrame(self, self.model, self.sessionpars)
+        self.main_frame = v_main.MainFrame(self, self.csvmodel, self.sessionpars)
+        self.main_frame.grid()
+
         # Load menus
-        menu = MainMenu(self)
+        menu = menu_main.MainMenu(self)
         self.config(menu=menu)
 
         # Create callback dictionary
@@ -72,7 +90,10 @@ class Application(tk.Tk):
             '<<CalibrationSubmit>>': lambda _: self._calc_level(),
 
             # Audio dialog commands
-            '<<AudioDialogSubmit>>': lambda _: self._save_sessionpars()
+            '<<AudioDialogSubmit>>': lambda _: self._save_sessionpars(),
+
+            # Mainframe commands
+            '<<SaveRecord>>': lambda _: self._on_save()
         }
 
         # Bind callbacks to sequences
@@ -98,20 +119,31 @@ class Application(tk.Tk):
         self.geometry("+%d+%d" % (x, y))
         self.deiconify()
 
-        # Toplevel.update_idletasks()
-        # screen_width = Toplevel.winfo_screenwidth()
-        # screen_height = Toplevel.winfo_screenheight()
-        # size = tuple(int(_) for _ in Toplevel.geometry().split('+')[0].split('x'))
-        # x = screen_width/2 - size[0]/2
-        # y = screen_height/2 - size[1]/2
-        # Toplevel.geometry("+%d+%d" % (x, y))
-        # Toplevel.deiconify()
+
+    def resource_path(self, relative_path):
+        """ Get the absolute path to compiled resources
+        """
+        try:
+            # PyInstaller creates a temp folder and stores path in _MEIPASS
+            base_path = sys._MEIPASS
+        except Exception:
+            base_path = os.path.abspath(".")
+
+        return os.path.join(base_path, relative_path)
 
 
     def _quit(self):
         """ Exit the application
         """
         self.destroy()
+
+
+    ########################
+    # Main Frame Functions #
+    ########################
+    def _on_save(self):
+        print('App_145: Calling save record function...')
+        self.csvmodel.save_record(self.sessionpars)
 
 
     ############################
@@ -170,10 +202,6 @@ class Application(tk.Tk):
         v_cal.CalibrationDialog(self, self.sessionpars)
 
 
-    def _play_calibration(self):
-        print("Play cal file here...")
-
-
     def _calc_level(self):
         """ Calculate and save adjusted presentation level
         """
@@ -193,6 +221,24 @@ class Application(tk.Tk):
 
         # Save SLM offset and updated level
         self._save_sessionpars()
+
+
+    def _play_calibration(self):
+        """ Load calibration file and present
+        """
+        # Create calibration audio object
+        try:
+            # If running from compiled, look in compiled temporary location
+            cal_file = self.resource_path('cal_stim.wav')
+            cal_stim = m_audio.Audio(cal_file, self.sessionpars['Raw Level'].get())
+        except FileNotFoundError:
+            # If running from command line, look in assets folder
+            cal_file = '.\\assets\\cal_stim.wav'
+            cal_stim = m_audio.Audio(cal_file, self.sessionpars['Raw Level'].get())
+
+        # Present calibration stimulus
+        cal_stim.play(device_id=self.sessionpars['Audio Device ID'].get(), 
+            channels=self.sessionpars['Speaker Number'].get())
 
 
 if __name__ == "__main__":

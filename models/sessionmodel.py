@@ -13,7 +13,7 @@ from glob import glob
 
 
 #########
-# MODEL #
+# BEGIN #
 #########
 class SessionParsModel:
     # Define dictionary items

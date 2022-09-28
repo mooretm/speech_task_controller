@@ -1,8 +1,5 @@
-.vscode
-.DS_Store
 __pycache__
 data/
 etc/
 audio/
 calibration/
-assets/
