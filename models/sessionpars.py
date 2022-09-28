@@ -5,14 +5,7 @@
 # IMPORTS  #
 ############
 # Import system packages
-import csv
 from pathlib import Path
-from datetime import datetime
-import os
-
-# Import data science packages
-import numpy as np
-import pandas as pd
 
 # Import data handling packages
 import json
@@ -51,7 +44,7 @@ class SessionParsModel:
         """ Load session parameters from file
         """
         # If the file doesn't exist, abort
-        print("Models_Session_53: Checking for parameter file...")
+        print("\nModels_Session_54: Checking for parameter file...")
         if not self.filepath.exists():
             return
 

@@ -89,6 +89,6 @@ class SessionDialog(tk.Toplevel):
 
 
     def _on_submit(self):
-        print("View_Session_78: Sending save event...")
+        print("\nView_Session_92: Sending save event...")
         self.parent.event_generate('<<SessionSubmit>>')
         self.destroy()

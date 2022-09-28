@@ -1,4 +1,4 @@
-""" Audio settings  dialog
+""" Audio dialog
 """
 
 ###########
@@ -96,6 +96,6 @@ class AudioDialog(tk.Toplevel):
 
 
     def _on_submit(self):
-        print("View_294: Sending save audio config event...")
-        self.parent.event_generate('<<AudioParsSubmit>>')
+        print("\nView_Audio_99: Sending save audio config event...")
+        self.parent.event_generate('<<AudioDialogSubmit>>')
         self.destroy()

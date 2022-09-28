@@ -10,30 +10,18 @@
 ###########
 # Import GUI packages
 import tkinter as tk
-from tkinter import ttk, font, Menu, Toplevel
 from tkinter.messagebox import askyesno, showinfo, showwarning
-
-# Import system packages
-import os
-import sys
-import csv
-from datetime import datetime
-import time
 
 # Import data science packages
 import numpy as np
 import pandas as pd
-from pandastable import Table
-
-# Import audio packages
-from scipy.io import wavfile
-import sounddevice as sd
-from mainmenu import MainMenu
 
 # Import custom modules
 from lib import tmsignals as ts
 import importlib 
 importlib.reload(ts) # Reload custom module on every run
+# Menu imports
+from mainmenu import MainMenu
 # Model imports
 from models import sessionpars as m_sesspars
 # View imports
@@ -54,24 +42,19 @@ class Application(tk.Tk):
         self.withdraw() # Hide window during setup
         self.title("Presentation Controller")
 
-
-        ###############################
-        # Initialize Models and Views #
-        ###############################
+        ######################################
+        # Initialize Models, Menus and Views #
+        ######################################
         # Load current session parameters from file
         # Or load defaults if file does not exist yet
         self.sessionpars_model = m_sesspars.SessionParsModel()
         self._load_sessionpars()
 
-
-        #############
-        # Main Menu #
-        #############
-        # Create menu
+        # Load menus
         menu = MainMenu(self)
         self.config(menu=menu)
 
-        # Create menu callback dictionary
+        # Create callback dictionary
         event_callbacks = {
             # File menu
             '<<FileSession>>': lambda _: self._show_session_dialog(),
@@ -100,6 +83,9 @@ class Application(tk.Tk):
         self.center_window()
 
 
+    #####################
+    # General Functions #
+    #####################
     def center_window(self):
         """ Center the root window 
         """
@@ -122,13 +108,19 @@ class Application(tk.Tk):
         # Toplevel.deiconify()
 
 
+    def _quit(self):
+        """ Exit the application
+        """
+        self.destroy()
+
+
     ############################
     # Session Dialog Functions #
     ############################
     def _show_session_dialog(self):
         """ Show session parameter dialog
         """
-        print("App_125: Calling session dialog...")
+        print("\nApp_125: Calling session dialog...")
         v_sess.SessionDialog(self, self.sessionpars)
 
 
@@ -154,7 +146,7 @@ class Application(tk.Tk):
     def _save_sessionpars(self, *_):
         """ Save current runtime parameters to file 
         """
-        print("App_156: Calling sessionpar model set and save funcs...")
+        print("\nApp_156: Calling sessionpar model set and save funcs...")
         for key, variable in self.sessionpars.items():
             self.sessionpars_model.set(key, variable.get())
             self.sessionpars_model.save()
@@ -166,7 +158,7 @@ class Application(tk.Tk):
     def _show_audio_dialog(self):
         """ Show audio settings dialog
         """
-        print("App_166: Calling audio dialog...")
+        print("\nApp_166: Calling audio dialog...")
         v_aud.AudioDialog(self, self.sessionpars)
 
 
@@ -201,12 +193,6 @@ class Application(tk.Tk):
 
         # Save SLM offset and updated level
         self._save_sessionpars()
-
-
-    def _quit(self):
-        """ Quit the program
-        """
-        self.destroy()
 
 
 if __name__ == "__main__":

@@ -86,6 +86,6 @@ class CalibrationDialog(tk.Toplevel):
 
 
     def _on_submit(self):
-        print("View_Cal_95: Sending save calibration event...")
+        print("\nView_Cal_89: Sending save calibration event...")
         self.parent.event_generate('<<CalibrationSubmit>>')
         self.destroy()
