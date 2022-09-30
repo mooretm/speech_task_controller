@@ -1,8 +1,8 @@
-"""Speech task presentation controller.
+""" Presentation controller
 
     Written by: Travis M. Moore
     Created: 23 Jun, 2022
-    Last edited: 28 Sep, 2022
+    Last edited: 30 Sep, 2022
 """
 
 ###########
@@ -10,11 +10,6 @@
 ###########
 # Import GUI packages
 import tkinter as tk
-from tkinter.messagebox import askyesno, showinfo, showwarning
-
-# Import data science packages
-import numpy as np
-import pandas as pd
 
 # Import system packages
 import os
@@ -142,8 +137,16 @@ class Application(tk.Tk):
     # Main Frame Functions #
     ########################
     def _on_save(self):
-        print('App_145: Calling save record function...')
-        self.csvmodel.save_record(self.sessionpars)
+        """ Format values and send to csv model
+        """
+        # Get tk variable values
+        data = dict()
+        for key in self.sessionpars:
+            data[key] = self.sessionpars[key].get()
+
+        # Save data
+        print('App_146: Calling save record function...')
+        self.csvmodel.save_record(data)
 
 
     ############################
@@ -226,15 +229,21 @@ class Application(tk.Tk):
     def _play_calibration(self):
         """ Load calibration file and present
         """
-        # Create calibration audio object
-        try:
-            # If running from compiled, look in compiled temporary location
-            cal_file = self.resource_path('cal_stim.wav')
-            cal_stim = m_audio.Audio(cal_file, self.sessionpars['Raw Level'].get())
-        except FileNotFoundError:
-            # If running from command line, look in assets folder
-            cal_file = '.\\assets\\cal_stim.wav'
-            cal_stim = m_audio.Audio(cal_file, self.sessionpars['Raw Level'].get())
+        # Check for default calibration stimulus request
+        if self.sessionpars['Calibration File'].get() == 'cal_stim.wav':
+            # Create calibration audio object
+            try:
+                # If running from compiled, look in compiled temporary location
+                cal_file = self.resource_path('cal_stim.wav')
+                cal_stim = m_audio.Audio(cal_file, self.sessionpars['Raw Level'].get())
+            except FileNotFoundError:
+                # If running from command line, look in assets folder
+                cal_file = '.\\assets\\cal_stim.wav'
+                cal_stim = m_audio.Audio(cal_file, self.sessionpars['Raw Level'].get())
+        else: # Custom calibration file was provided
+            print("Reading provided calibration file...")
+            cal_stim = m_audio.Audio(self.sessionpars['Calibration File'].get(), 
+                self.sessionpars['Raw Level'].get())
 
         # Present calibration stimulus
         cal_stim.play(device_id=self.sessionpars['Audio Device ID'].get(), 

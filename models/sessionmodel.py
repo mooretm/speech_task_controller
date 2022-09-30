@@ -26,7 +26,8 @@ class SessionParsModel:
         'Audio Device ID': {'type': 'int', 'value': 999},
         'Raw Level': {'type': 'float', 'value': -50},
         'SLM Reading': {'type': 'float', 'value': 70},
-        'Adjusted Presentation Level': {'type': 'float', 'value': -50}
+        'Adjusted Presentation Level': {'type': 'float', 'value': -50},
+        'Calibration File': {'type': 'str', 'value': 'cal_stim.wav'}
     }
 
     def __init__(self):
