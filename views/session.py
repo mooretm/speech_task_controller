@@ -23,48 +23,72 @@ class SessionDialog(tk.Toplevel):
 
         self.withdraw()
         self.title("Session")
+        self.grab_set()
 
         options = {'padx':5, 'pady':5}
 
-        frame = ttk.Labelframe(self, text='Session Information')
-        frame.grid(column=0, row=0, padx=10, pady=10)
+        frm_session = ttk.Labelframe(self, text='Session Information')
+        frm_session.grid(column=0, row=5, padx=10, pady=10, sticky='nsew')
+
+        frm_audiopath = ttk.Labelframe(self, text="Audio File Directory")
+        frm_audiopath.grid(column=0, row=10, padx=10, pady=10, ipadx=5, ipady=5)
+
+        frm_sentencepath = ttk.Labelframe(self, text='Sentence File Directory')
+        frm_sentencepath.grid(column=0, row=15, padx=10, pady=10, ipadx=5, ipady=5)
 
         # Subject
-        ttk.Label(frame, text="Subject:"
+        ttk.Label(frm_session, text="Subject:"
             ).grid(row=2, column=0, sticky='e', **options)
-        ttk.Entry(frame, width=20, 
+        ttk.Entry(frm_session, width=20, 
             textvariable=self.sessionpars['Subject']
             ).grid(row=2, column=1, sticky='w')
         
         # Condition
-        ttk.Label(frame, text="Condition:"
+        ttk.Label(frm_session, text="Condition:"
             ).grid(row=3, column=0, sticky='e', **options)
-        ttk.Entry(frame, width=20, 
+        ttk.Entry(frm_session, width=20, 
             textvariable=self.sessionpars['Condition']
             ).grid(row=3, column=1, sticky='w')
 
-        # Level
-        ttk.Label(frame, text="Presentation Level (dB):"
+        # List
+        ttk.Label(frm_session, text="List(s):"
             ).grid(row=4, column=0, sticky='e', **options)
-        ttk.Entry(frame, width=20, 
-            textvariable=self.sessionpars['Presentation Level']
+        ttk.Entry(frm_session, width=20, 
+            textvariable=self.sessionpars['List Number']
             ).grid(row=4, column=1, sticky='w')
 
-        # Directory
-        frm_path = ttk.LabelFrame(frame, text="Please select audio file directory")
-        frm_path.grid(row=5, column=0, columnspan=2, **options, ipadx=5, ipady=5)
-        my_frame = frame
-        ttk.Label(my_frame, text="Audio File Path:"
+        # Level
+        ttk.Label(frm_session, text="Level (dB):"
             ).grid(row=5, column=0, sticky='e', **options)
-        ttk.Label(my_frame, textvariable=self.sessionpars['Audio Files Path'], 
-            borderwidth=2, relief="solid", width=60
+        ttk.Entry(frm_session, width=20, 
+            textvariable=self.sessionpars['Presentation Level']
             ).grid(row=5, column=1, sticky='w')
-        ttk.Button(my_frame, text="Browse", command=self._get_directory
-            ).grid(row=6, column=1, sticky='w', pady=(0, 5))
+
+        # Audio directory
+        ttk.Label(frm_audiopath, text="Path:"
+            ).grid(row=6, column=0, sticky='e', **options)
+        ttk.Label(frm_audiopath, textvariable=self.sessionpars['Audio Files Path'], 
+            borderwidth=2, relief="solid", width=60
+            ).grid(row=6, column=1, sticky='w')
+        ttk.Button(frm_audiopath, text="Browse", command=self._get_audio_directory
+            ).grid(row=7, column=1, sticky='w', pady=(0, 10))
+
+        # Separator
+        #sep = ttk.Separator(frm_paths, orient='horizontal')
+        #sep.grid(column=0, columnspan=2, row=8, sticky='ew')
+
+        # Sentence directory
+        ttk.Label(frm_sentencepath, text="Path:"
+            ).grid(row=9, column=0, sticky='e', **options)
+        ttk.Label(frm_sentencepath, textvariable=self.sessionpars['Sentence File Path'], 
+            borderwidth=2, relief="solid", width=60
+            ).grid(row=9, column=1, sticky='w')
+        ttk.Button(frm_sentencepath, text="Browse", command=self._get_sentence_directory
+            ).grid(row=10, column=1, sticky='w', pady=(0, 5))
 
         # Submit button
         btn_submit = ttk.Button(self, text="Submit", command=self._on_submit)
-        btn_submit.grid(column=0, columnspan=2, row=10, pady=(0,10))
+        btn_submit.grid(column=0, columnspan=2, row=20, pady=(0,10))
 
         # Center the session dialog window
         self.center_window()
@@ -83,9 +107,14 @@ class SessionDialog(tk.Toplevel):
         self.deiconify()
 
 
-    def _get_directory(self):
+    def _get_audio_directory(self):
         # Ask user to specify audio files directory
         self.sessionpars['Audio Files Path'].set(filedialog.askdirectory())
+
+
+    def _get_sentence_directory(self):
+        # Ask user to specify audio files directory
+        self.sessionpars['Sentence File Path'].set(filedialog.askdirectory())
 
 
     def _on_submit(self):

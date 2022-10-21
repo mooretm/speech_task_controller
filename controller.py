@@ -15,6 +15,9 @@ import tkinter as tk
 import os
 import sys
 
+# Import data science packages
+import pandas as pd
+
 # Import custom modules
 from lib import tmsignals as ts
 import importlib 
@@ -24,6 +27,7 @@ from menus import mainmenu as menu_main
 # Model imports
 from models import sessionmodel as m_sesspars
 from models import audiomodel as m_audio
+from models import listmodel as m_list
 from models import csvmodel as m_csv
 # View imports
 from views import main as v_main
@@ -43,24 +47,28 @@ class Application(tk.Tk):
 
         self.withdraw() # Hide window during setup
         self.title("Presentation Controller")
+        self.resizable(False, False)
+        
 
         ######################################
         # Initialize Models, Menus and Views #
         ######################################
         # Track number of trials
-        self.counter = 0
+        self.counter = -1
+        self.first = True
 
-        # Load current session parameters from file
-        # Or load defaults if file does not exist yet
+        # Load session parameters
         self.sessionpars_model = m_sesspars.SessionParsModel()
         self._load_sessionpars()
 
         # Load CSV writer model
         self.csvmodel = m_csv.CSVModel(self.sessionpars)
 
+        # Load list model
+        self.listmodel = m_list.StimulusList(self.sessionpars)
+
         # Load main view
-        #self.main_frame = v_main.MainFrame(self, self.model, self.sessionpars)
-        self.main_frame = v_main.MainFrame(self, self.csvmodel, self.sessionpars)
+        self.main_frame = v_main.MainFrame(self, self.csvmodel, self.sessionpars, self.listmodel)
         self.main_frame.grid()
 
         # Load menus
@@ -88,6 +96,7 @@ class Application(tk.Tk):
             '<<AudioDialogSubmit>>': lambda _: self._save_sessionpars(),
 
             # Mainframe commands
+            '<<RightButton>>': lambda _: self._on_right(),
             '<<SaveRecord>>': lambda _: self._on_save()
         }
 
@@ -133,9 +142,20 @@ class Application(tk.Tk):
         self.destroy()
 
 
+    def _load_listmodel(self):
+        self.audio_df = self.listmodel.audio_df
+        self.sentence_df = self.listmodel.sentence_df
+
+
     ########################
     # Main Frame Functions #
     ########################
+    def _on_right(self):
+        pass
+        
+        
+
+
     def _on_save(self):
         """ Format values and send to csv model
         """
@@ -185,6 +205,16 @@ class Application(tk.Tk):
         for key, variable in self.sessionpars.items():
             self.sessionpars_model.set(key, variable.get())
             self.sessionpars_model.save()
+
+        self.main_frame.subject_var.set('Subject: ' + self.sessionpars['Subject'].get())
+        self.main_frame.condition_var.set('Condition: ' + self.sessionpars['Condition'].get())
+        #self.main_frame.level_var.set('Level: ' + self.sessionpars['Presentation Level'].get())
+        self.main_frame.list_var.set('List(s): ' + self.sessionpars['List Number'].get())
+        #self.main_frame.speaker_var.set('Speaker: ' + str(self.sessionpars['Speaker Number'].get()))
+        self.main_frame.trial_var.set('Trial: NA of NA')
+
+        # Load in the audio and sentence files
+        self._load_listmodel()
 
 
     ##########################

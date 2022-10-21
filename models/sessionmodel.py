@@ -1,4 +1,4 @@
-""" Model for storing session parameters 
+""" Class for storing session parameters 
 """
 
 ############
@@ -20,9 +20,11 @@ class SessionParsModel:
     fields = {
         'Subject': {'type': 'str', 'value': '999'},
         'Condition': {'type': 'str', 'value': 'Quiet'},
+        'List Number': {'type': 'str', 'value': '1'},
         'Presentation Level': {'type': 'float', 'value': 65},
         'Speaker Number': {'type': 'int', 'value': 1},
         'Audio Files Path': {'type': 'str', 'value': 'Please select a path'},
+        'Sentence File Path': {'type': 'str', 'value': 'Please select a path'},
         'Audio Device ID': {'type': 'int', 'value': 999},
         'Raw Level': {'type': 'float', 'value': -50},
         'SLM Reading': {'type': 'float', 'value': 70},
