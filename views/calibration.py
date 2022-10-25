@@ -86,7 +86,7 @@ class CalibrationDialog(tk.Toplevel):
         # Raw level
         lbl_play = ttk.Label(lf_present, text="Raw Level (dB FS):").grid(
             column=5, row=5, sticky='e', **options_small)
-        ent_slm = ttk.Entry(lf_present, textvariable=self.sessionpars['Raw Level'],
+        ent_slm = ttk.Entry(lf_present, textvariable=self.sessionpars['raw_lvl'],
             width=6)
         ent_slm.grid(column=10, row=5, sticky='w', **options_small)
  
@@ -102,7 +102,7 @@ class CalibrationDialog(tk.Toplevel):
         # SLM Reading 
         lbl_slm = ttk.Label(lf_record, text="SLM Reading (dB):").grid(
             column=5, row=15, sticky='e', **options_small)
-        self.ent_slm = ttk.Entry(lf_record, textvariable=self.sessionpars['SLM Reading'],
+        self.ent_slm = ttk.Entry(lf_record, textvariable=self.sessionpars['slm_cal_value'],
             width=6, state='disabled')
         self.ent_slm.grid(column=10, row=15, sticky='w', **options_small)
 

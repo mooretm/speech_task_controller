@@ -60,35 +60,32 @@ class Application(tk.Tk):
             'PC Word': [], # Number of words correct
             'PC Custom': [], # Outcomes (right/wrong; 1/0)
         }
-        
+
 
         ######################################
         # Initialize Models, Menus and Views #
         ######################################
-        # Track number of trials
-        self.counter = -1
-        self.first = True
-
         # Load session parameters
         self.sessionpars_model = m_sesspars.SessionParsModel()
         self._load_sessionpars()
 
-        # Load CSV writer model
+        # Create CSV writer model
         self.csvmodel = m_csv.CSVModel(self.sessionpars)
 
-        # Load list model
+        # Create and load list model
         self.listmodel = m_list.StimulusList(self.sessionpars)
         self.listmodel.load()
+        #messagebox.showinfo(title="Debug", message="App initialized!")
 
-        # Load score model
+        # Create score model
         self.scoremodel = m_score.ScoreModel()
 
-        # Load main view
+        # Create main view
         self.main_frame = v_main.MainFrame(self, self.scoremodel, 
             self.sessionpars, self.listmodel)
         self.main_frame.grid()
 
-        # Load menus
+        # Create menus
         menu = menu_main.MainMenu(self)
         self.config(menu=menu)
 
@@ -114,7 +111,8 @@ class Application(tk.Tk):
 
             # Mainframe commands
             '<<SubmitResponse>>': lambda _: self._on_main_submit(),
-            '<<MainDone>>': lambda _: self._main_done()
+            '<<MainDone>>': lambda _: self._main_done(),
+            '<<GetLevel>>': lambda _: self._calc_level()
             #'<<SaveRecord>>': lambda _: self._on_save()
         }
 
@@ -160,30 +158,21 @@ class Application(tk.Tk):
         self.destroy()
 
 
-    # Passing entire listmodel to main to deal with
-    # Don't need actual list values in controller 
-    #def _load_listmodel(self):
-    #    self.audio_df = self.listmodel.audio_df
-    #    self.sentence_df = self.listmodel.sentence_df
-
-
     ########################
     # Main Frame Functions #
     ########################
     def _on_main_submit(self):
         # Provide feedback to the console
         print(f"\nTrial {self.scoremodel.fields['Trial']}:")
+        print(f"Level: {self.sessionpars['Presentation Level'].get()} (dB)")
         print(f"Correct: {self.scoremodel.fields['Words Correct']}")
         print(f"Incorrect: {self.scoremodel.fields['Words Incorrect']}")
         print(f"Outcome code: {self.scoremodel.fields['Outcome']}\n")
 
         # Track values for summary at end
-        self.tracker['Level'] = self.sessionpars['Presentation Level'].get()
+        self.tracker['Level'].append(self.sessionpars['Presentation Level'].get())
         self.tracker['PC Word'].append(self.scoremodel.fields['Num Words Correct'])
         self.tracker['PC Custom'].append(self.scoremodel.fields['Outcome'])
-
-        print(self.tracker)
-
 
         # Call save function
         self._on_save()
@@ -204,23 +193,25 @@ class Application(tk.Tk):
 
         # Combine sessionpars dict and scoremodel dict for writing
         data.update(self.scoremodel.fields)
-        print(data)
 
         # Save data
-        print('App_146: Calling save record function...')
+        print('App_206: Calling save record function...')
         self.csvmodel.save_record(data)
 
 
     def _main_done(self):
+        """ Calculate and display summary stats. Close app.
+        """
         # Calculate some descriptive statistics for display
         num_possible_words = len(self.scoremodel.fields['Words Correct'].split()) + len(self.scoremodel.fields['Words Incorrect'].split())
-        print(f'Words per sentence: {num_possible_words}')
-        print(f"Total words correct: {np.sum(self.tracker['PC Word'])}")
-
+        #print(f'Words per sentence: {num_possible_words}')
+        #print(f"Total words correct: {np.sum(self.tracker['PC Word'])}")
         snr50 = round(np.mean(self.tracker['Level']), 2)
+        print(f"Tracker list of levels: {self.tracker['Level']}")
         pc_word = round((np.sum(self.tracker['PC Word']) / (len(self.tracker['PC Custom'] * num_possible_words))) * 100, 2)
         pc_custom = round((np.sum(self.tracker['PC Custom']) / len(self.tracker['PC Custom'])) * 100, 2)
 
+        # Summary stats messagebox
         messagebox.showinfo(
             title='Done!',
             message='Summary',
@@ -229,6 +220,7 @@ class Application(tk.Tk):
                 f'Percent Correct (Custom): {pc_custom}%'
         )
 
+        # Close app when done
         self.quit()
 
 
@@ -238,7 +230,7 @@ class Application(tk.Tk):
     def _show_session_dialog(self):
         """ Show session parameter dialog
         """
-        print("\nApp_125: Calling session dialog...")
+        print("\nApp_240: Calling session dialog...")
         v_sess.SessionDialog(self, self.sessionpars)
 
 
@@ -257,27 +249,27 @@ class Application(tk.Tk):
         for key, data in self.sessionpars_model.fields.items():
             vartype = vartypes.get(data['type'], tk.StringVar)
             self.sessionpars[key] = vartype(value=data['value'])
-        print("\nApp_125: Loaded sessionpars model fields into " +
+        print("\nApp_259: Loaded sessionpars model fields into " +
             "running sessionpars dict")
 
 
     def _save_sessionpars(self, *_):
         """ Save current runtime parameters to file 
         """
-        print("\nApp_156: Calling sessionpar model set and save funcs...")
+        print("\nApp_266: Calling sessionpar model set and save funcs...")
         for key, variable in self.sessionpars.items():
             self.sessionpars_model.set(key, variable.get())
             self.sessionpars_model.save()
 
-        self.main_frame.subject_var.set('Subject: ' + self.sessionpars['Subject'].get())
-        self.main_frame.condition_var.set('Condition: ' + self.sessionpars['Condition'].get())
+        #self.main_frame.subject_var.set('Subject: ' + self.sessionpars['Subject'].get())
+        #self.main_frame.condition_var.set('Condition: ' + self.sessionpars['Condition'].get())
         #self.main_frame.level_var.set('Level: ' + self.sessionpars['Presentation Level'].get())
-        self.main_frame.list_var.set('List(s): ' + self.sessionpars['List Number'].get())
+        #self.main_frame.list_var.set('List(s): ' + self.sessionpars['List Number'].get())
         #self.main_frame.speaker_var.set('Speaker: ' + str(self.sessionpars['Speaker Number'].get()))
-        self.main_frame.trial_var.set('Trial: NA of NA')
+        #self.main_frame.trial_var.set('Trial: NA of NA')
 
         # Load in the audio and sentence files
-        self.listmodel.load()
+        #self.listmodel.load()
 
 
     ##########################
@@ -286,7 +278,7 @@ class Application(tk.Tk):
     def _show_audio_dialog(self):
         """ Show audio settings dialog
         """
-        print("\nApp_166: Calling audio dialog...")
+        print("\nApp_288: Calling audio dialog...")
         v_aud.AudioDialog(self, self.sessionpars)
 
 
@@ -294,7 +286,7 @@ class Application(tk.Tk):
     # Calibration Dialog Functions #
     ################################
     def _show_calibration_dialog(self):
-        print("\nApp_146: Calling calibration dialog...")
+        print("\nApp_296: Calling calibration dialog...")
         v_cal.CalibrationDialog(self, self.sessionpars)
 
 
@@ -302,18 +294,22 @@ class Application(tk.Tk):
         """ Calculate and save adjusted presentation level
         """
         # Calculate SLM offset
-        print("\nApp_155: Calculating new presentation level...")
-        slm_offset = self.sessionpars['SLM Reading'].get() - self.sessionpars['Raw Level'].get()
+        print("\nApp_304: Calculating new presentation level...")
+        self.sessionpars['slm_offset'].set(self.sessionpars['slm_cal_value'].get() - self.sessionpars['raw_lvl'].get())
         # Provide console feedback
-        print(f"SLM reading: {self.sessionpars['SLM Reading'].get()}")
-        print(f"Raw level: {self.sessionpars['Raw Level'].get()}")
-        print(f"SLM offset: {slm_offset}")
+        print(f"SLM reading: {self.sessionpars['slm_cal_value'].get()}")
+        print(f"Raw level: {self.sessionpars['raw_lvl'].get()}")
+        print(f"SLM offset: {self.sessionpars['slm_offset'].get()}")
 
-        # Calculate new presentation level
-        self.sessionpars['Adjusted Presentation Level'].set(
-            self.sessionpars['Presentation Level'].get() - slm_offset)
-        print(f"New presentation level: " +
-            f"{self.sessionpars['Adjusted Presentation Level'].get()}")
+        # Calculate new raw level
+        self.sessionpars['new_raw_lvl'].set(
+            self.sessionpars['Presentation Level'].get() - self.sessionpars['slm_offset'].get())
+        print(f"New raw level: {self.sessionpars['new_raw_lvl'].get()}")
+
+        # Calculate new corresponding dB level
+        self.sessionpars['new_db_lvl'].set(
+            self.sessionpars['slm_offset'].get() + self.sessionpars['new_raw_lvl'].get())
+        print(f"New level (dB): {self.sessionpars['new_db_lvl'].get()}")
 
         # Save SLM offset and updated level
         self._save_sessionpars()
@@ -334,11 +330,12 @@ class Application(tk.Tk):
                 cal_file = '.\\assets\\cal_stim.wav'
                 cal_stim = m_audio.Audio(cal_file, self.sessionpars['Raw Level'].get())
         else: # Custom calibration file was provided
-            print("Reading provided calibration file...")
+            print("App_336: Reading provided calibration file...")
             cal_stim = m_audio.Audio(self.sessionpars['Calibration File'].get(), 
                 self.sessionpars['Raw Level'].get())
 
         # Present calibration stimulus
+        print("App_341: Playing calibration file...")
         cal_stim.play(device_id=self.sessionpars['Audio Device ID'].get(), 
             channels=self.sessionpars['Speaker Number'].get())
 
