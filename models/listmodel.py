@@ -19,13 +19,20 @@ from glob import glob
 # BEGIN #
 #########
 class StimulusList:
-    """ Get audio files and trailing underscore values 
+    """ Load audio files and written sentences into dataframes.
+        Subset dataframes based on provided list numbers.
+
+        Returns:
+            self.audio_df: data frame of audio paths/names
+            self.sentence_df: data frame of sentences, indexes
     """
 
     def __init__(self, sessionpars):
         # Initialize
         self.sessionpars = sessionpars
 
+
+    def load(self):
         # Call functions in order
         self._get_list_nums()
         self._get_sentences()
@@ -43,9 +50,9 @@ class StimulusList:
         # Audio Files #
         ###############
         # Check whether audio directory exists
-        print("Models_listmodel_33: Checking for audio files dir...")
+        print("Models_listmodel_51: Checking for audio files dir...")
         if not os.path.exists(self.sessionpars['Audio Files Path'].get()):
-            print("Models_listmodel_35: Not a valid audio files directory!")
+            print("Models_listmodel_53: Not a valid audio files directory!")
             messagebox.showerror(
                 title='Directory Not Found!',
                 message="Cannot find the audio file directory!\n" +
@@ -59,9 +66,10 @@ class StimulusList:
         self.audio_df['file_num'] = self.audio_df['path'].apply(lambda x: x.split(os.sep)[-1][:-4])
         self.audio_df['file_num'] = self.audio_df['file_num'].astype(int)
         self.audio_df = self.audio_df.sort_values(by=['file_num'])
-        self.audio_df = self.audio_df.loc[self.audio_df['file_num'].isin(self.sentence_df['sentence_num'])].reset_index()
+        #self.audio_df = self.audio_df.loc[self.audio_df['file_num'].isin(self.sentence_df['sentence_num'])].reset_index()
+        self.audio_df = self.audio_df.loc[self.audio_df['file_num'].isin(self.sentence_df['sentence_num'])]
         print(self.audio_df)
-        print("Models_list_model_47: Audio list dataframe loaded into listmodel")
+        print("Models_list_model_69: Audio list dataframe loaded into listmodel")
 
 
     def _get_sentences(self):
@@ -69,9 +77,9 @@ class StimulusList:
         # Sentence Files #
         ##################
         # Check whether sentence directory exists
-        print("Models_listmodel_54: Checking for sentences dir...")
+        print("Models_listmodel_77: Checking for sentences dir...")
         if not os.path.exists(self.sessionpars['Sentence File Path'].get()):
-            print("Models_listmodel_56: Not a valid 'sentences' file directory!")
+            print("Models_listmodel_79: Not a valid 'sentences' file directory!")
             messagebox.showerror(
                 title='Directory Not Found!',
                 message="Cannot find the 'sentence' file directory!\n" + 
@@ -92,4 +100,4 @@ class StimulusList:
         # Get sentences for specified list numbers
         self.sentence_df = s.loc[s['list_num'].isin(self.lists)].reset_index()
         print(self.sentence_df)
-        print("Models_listmodel_80: Sentence list dataframe loaded into listmodel")
+        print("Models_listmodel_100: Sentence list dataframe loaded into listmodel")

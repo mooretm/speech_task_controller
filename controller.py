@@ -2,7 +2,7 @@
 
     Written by: Travis M. Moore
     Created: 23 Jun, 2022
-    Last edited: 30 Sep, 2022
+    Last edited: 25 Oct, 2022
 """
 
 ###########
@@ -14,8 +14,10 @@ import tkinter as tk
 # Import system packages
 import os
 import sys
+from tkinter import messagebox
 
 # Import data science packages
+import numpy as np
 import pandas as pd
 
 # Import custom modules
@@ -29,6 +31,7 @@ from models import sessionmodel as m_sesspars
 from models import audiomodel as m_audio
 from models import listmodel as m_list
 from models import csvmodel as m_csv
+from models import scoremodel as m_score
 # View imports
 from views import main as v_main
 from views import session as v_sess
@@ -45,9 +48,18 @@ class Application(tk.Tk):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.withdraw() # Hide window during setup
+        # Root window settings
+        self.withdraw() 
         self.title("Presentation Controller")
         self.resizable(False, False)
+
+        # Dictionary to track values per trial
+        # Used to calculate summary stats
+        self.tracker = {
+            'Level': [], # Adjusted presentation levels
+            'PC Word': [], # Number of words correct
+            'PC Custom': [], # Outcomes (right/wrong; 1/0)
+        }
         
 
         ######################################
@@ -66,9 +78,14 @@ class Application(tk.Tk):
 
         # Load list model
         self.listmodel = m_list.StimulusList(self.sessionpars)
+        self.listmodel.load()
+
+        # Load score model
+        self.scoremodel = m_score.ScoreModel()
 
         # Load main view
-        self.main_frame = v_main.MainFrame(self, self.csvmodel, self.sessionpars, self.listmodel)
+        self.main_frame = v_main.MainFrame(self, self.scoremodel, 
+            self.sessionpars, self.listmodel)
         self.main_frame.grid()
 
         # Load menus
@@ -96,8 +113,9 @@ class Application(tk.Tk):
             '<<AudioDialogSubmit>>': lambda _: self._save_sessionpars(),
 
             # Mainframe commands
-            '<<RightButton>>': lambda _: self._on_right(),
-            '<<SaveRecord>>': lambda _: self._on_save()
+            '<<SubmitResponse>>': lambda _: self._on_main_submit(),
+            '<<MainDone>>': lambda _: self._main_done()
+            #'<<SaveRecord>>': lambda _: self._on_save()
         }
 
         # Bind callbacks to sequences
@@ -142,31 +160,76 @@ class Application(tk.Tk):
         self.destroy()
 
 
-    def _load_listmodel(self):
-        self.audio_df = self.listmodel.audio_df
-        self.sentence_df = self.listmodel.sentence_df
+    # Passing entire listmodel to main to deal with
+    # Don't need actual list values in controller 
+    #def _load_listmodel(self):
+    #    self.audio_df = self.listmodel.audio_df
+    #    self.sentence_df = self.listmodel.sentence_df
 
 
     ########################
     # Main Frame Functions #
     ########################
-    def _on_right(self):
-        pass
-        
-        
+    def _on_main_submit(self):
+        # Provide feedback to the console
+        print(f"\nTrial {self.scoremodel.fields['Trial']}:")
+        print(f"Correct: {self.scoremodel.fields['Words Correct']}")
+        print(f"Incorrect: {self.scoremodel.fields['Words Incorrect']}")
+        print(f"Outcome code: {self.scoremodel.fields['Outcome']}\n")
+
+        # Track values for summary at end
+        self.tracker['Level'] = self.sessionpars['Presentation Level'].get()
+        self.tracker['PC Word'].append(self.scoremodel.fields['Num Words Correct'])
+        self.tracker['PC Custom'].append(self.scoremodel.fields['Outcome'])
+
+        print(self.tracker)
 
 
+        # Call save function
+        self._on_save()
+        
+        
     def _on_save(self):
         """ Format values and send to csv model
         """
-        # Get tk variable values
+        # Get tk variable values from sessionpars
         data = dict()
         for key in self.sessionpars:
             data[key] = self.sessionpars[key].get()
 
+        # Only write specific sessionpars to file
+        drop_list = ['Speaker Number', 'Audio Files Path', 
+            'Sentence File Path', 'Audio Device ID', 'Calibration File']
+        [data.pop(e) for e in drop_list]
+
+        # Combine sessionpars dict and scoremodel dict for writing
+        data.update(self.scoremodel.fields)
+        print(data)
+
         # Save data
         print('App_146: Calling save record function...')
         self.csvmodel.save_record(data)
+
+
+    def _main_done(self):
+        # Calculate some descriptive statistics for display
+        num_possible_words = len(self.scoremodel.fields['Words Correct'].split()) + len(self.scoremodel.fields['Words Incorrect'].split())
+        print(f'Words per sentence: {num_possible_words}')
+        print(f"Total words correct: {np.sum(self.tracker['PC Word'])}")
+
+        snr50 = round(np.mean(self.tracker['Level']), 2)
+        pc_word = round((np.sum(self.tracker['PC Word']) / (len(self.tracker['PC Custom'] * num_possible_words))) * 100, 2)
+        pc_custom = round((np.sum(self.tracker['PC Custom']) / len(self.tracker['PC Custom'])) * 100, 2)
+
+        messagebox.showinfo(
+            title='Done!',
+            message='Summary',
+            detail=f'SNR 50: {snr50} dB\n' +
+                f'Percent Correct (Word): {pc_word}%\n' +
+                f'Percent Correct (Custom): {pc_custom}%'
+        )
+
+        self.quit()
 
 
     ############################
@@ -214,7 +277,7 @@ class Application(tk.Tk):
         self.main_frame.trial_var.set('Trial: NA of NA')
 
         # Load in the audio and sentence files
-        self._load_listmodel()
+        self.listmodel.load()
 
 
     ##########################
