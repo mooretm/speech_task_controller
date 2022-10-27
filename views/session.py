@@ -21,21 +21,33 @@ class SessionDialog(tk.Toplevel):
         self.parent = parent
         self.sessionpars = sessionpars
 
+        # Window setup
         self.withdraw()
         self.title("Session")
         self.grab_set()
 
+        # Shared display settings
         options = {'padx':5, 'pady':5}
 
+        #################
+        # Create frames #
+        #################
+        # Session info frame
         frm_session = ttk.Labelframe(self, text='Session Information')
         frm_session.grid(column=0, row=5, padx=10, pady=10, sticky='nsew')
 
+        # Audio file browser frame
         frm_audiopath = ttk.Labelframe(self, text="Audio File Directory")
         frm_audiopath.grid(column=0, row=10, padx=10, pady=10, ipadx=5, ipady=5)
 
+        # Sentence file browser frame
         frm_sentencepath = ttk.Labelframe(self, text='Sentence File Directory')
         frm_sentencepath.grid(column=0, row=15, padx=10, pady=10, ipadx=5, ipady=5)
 
+
+        #######################
+        # Create view widgets #
+        #######################
         # Subject
         ttk.Label(frm_session, text="Subject:"
             ).grid(row=2, column=0, sticky='e', **options)
@@ -73,10 +85,6 @@ class SessionDialog(tk.Toplevel):
         ttk.Button(frm_audiopath, text="Browse", command=self._get_audio_directory
             ).grid(row=7, column=1, sticky='w', pady=(0, 10))
 
-        # Separator
-        #sep = ttk.Separator(frm_paths, orient='horizontal')
-        #sep.grid(column=0, columnspan=2, row=8, sticky='ew')
-
         # Sentence directory
         ttk.Label(frm_sentencepath, text="Path:"
             ).grid(row=9, column=0, sticky='e', **options)
@@ -94,6 +102,9 @@ class SessionDialog(tk.Toplevel):
         self.center_window()
 
 
+    #############
+    # Functions #
+    #############
     def center_window(self):
         """ Center the root window 
         """
@@ -108,16 +119,24 @@ class SessionDialog(tk.Toplevel):
 
 
     def _get_audio_directory(self):
-        # Ask user to specify audio files directory
+        """ Ask user to specify audio files directory and 
+            store it in sessionpars
+        """
         self.sessionpars['Audio Files Path'].set(filedialog.askdirectory())
 
 
     def _get_sentence_directory(self):
-        # Ask user to specify audio files directory
+        """ Ask user to specify sentence file and store
+            it in sessionpars
+        """
         self.sessionpars['Sentence File Path'].set(filedialog.askdirectory())
 
 
     def _on_submit(self):
-        print("\nView_Session_92: Sending save event...")
+        """ Set new_db_lvl to specified presentation level.
+            Send event to controller to write sessionpars data to file
+        """
+        self.sessionpars['new_db_lvl'].set(self.sessionpars['Presentation Level'].get())
+        print("\nViews_Session_140: Sending save event to controller...")
         self.parent.event_generate('<<SessionSubmit>>')
         self.destroy()

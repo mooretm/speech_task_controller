@@ -685,7 +685,7 @@ def score(resp_val):
         print("Except: Couldn't score because there were no values yet")
         # No values to score, which means this is the first iteration
 
-    # Destroy labels and checkboxes, if they exist yet
+    # Destroy labels and checkboxes, if they exist
     try:
         list_of_lbls = list(filter(None, list_of_lbls))
         list_of_chkboxes = list(filter(None, list_of_chkboxes))

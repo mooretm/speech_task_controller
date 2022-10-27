@@ -1,4 +1,6 @@
 """ Calibration dialog class
+
+    Written by: Travis M. Moore
 """
 
 ###########
@@ -17,6 +19,8 @@ import os
 # BEGIN #
 #########
 class CalibrationDialog(tk.Toplevel):
+    """ Dialog for calibration
+    """
     def __init__(self, parent, sessionpars, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
         self.parent = parent
@@ -28,12 +32,27 @@ class CalibrationDialog(tk.Toplevel):
         self.title("Calibration")
         self.grab_set()
 
+        # Create display
+        self._build()
 
-        # Label frames #
+        # Enabled last used calibration method
+        self._set_cal_val()
+
+        # Center calibration window dialog
+        self.center_window()
+
+
+    def _build(self):
+        """ Create form widgets 
+        """
         # Options for label frames
         options = {'padx':10, 'pady':10}
         options_small = {'padx':2.5, 'pady':2.5}
 
+
+        #################
+        # Create frames #
+        #################
         # Choose calibration stimulus controls
         lf_load = ttk.LabelFrame(self, text="Choose Calibration Stimulus")
         lf_load.grid(column=5, columnspan=10, row=5, **options)
@@ -47,28 +66,26 @@ class CalibrationDialog(tk.Toplevel):
         lf_record.grid(column=10, row=10, **options, sticky='e')
 
 
+        ##################################
         # Calibration selection controls #
+        ##################################
         # Define variables for file path and radio button value
         self.cal_path = tk.StringVar(value='Please choose a calibration stimulus file')
         self.cal_var = tk.StringVar()
         
-        # Radio buttons
-        # Default white noise stimulus
+        # Default white noise stimulus radio button
         rad_wgn = ttk.Radiobutton(lf_load, text="White Noise", takefocus=0,
             variable=self.cal_var, value='wgn', command=self._cal_type)
         rad_wgn.grid(column=5, row=0, columnspan=10, sticky='w', 
             **options_small)
 
-        # Upload custom calibration stimulus
+        # Custom calibration stimulus radio button
         rad_custom = ttk.Radiobutton(lf_load, text="Custom File", takefocus=0,
             variable=self.cal_var, value='custom', command=self._cal_type)
         rad_custom.grid(column=5, row=1, columnspan=10, sticky='w', 
             **options_small)
 
-        # Set white noise to default option
-        #self.cal_var.set('wgn')
-
-        # File path
+        # Get calibration file path
         self.lbl_calfile1 = ttk.Label(lf_load, text='File:', state='disabled')
         self.lbl_calfile1.grid(column=5, row=5, sticky='w', **options_small)
         self.lbl_calfile2 = ttk.Label(lf_load, textvariable=self.cal_path, borderwidth=2, 
@@ -82,25 +99,29 @@ class CalibrationDialog(tk.Toplevel):
             **options_small)
 
 
+        #####################################
         # Calibration presentation controls #
-        # Raw level
-        lbl_play = ttk.Label(lf_present, text="Raw Level (dB FS):").grid(
+        #####################################
+        # Raw level entry
+        ttk.Label(lf_present, text="Raw Level (dB FS):").grid(
             column=5, row=5, sticky='e', **options_small)
         ent_slm = ttk.Entry(lf_present, textvariable=self.sessionpars['raw_lvl'],
             width=6)
         ent_slm.grid(column=10, row=5, sticky='w', **options_small)
  
         # Play calibration stimulus
-        lbl_play = ttk.Label(lf_present, text="Calibration Stimulus:").grid(
+        ttk.Label(lf_present, text="Calibration Stimulus:").grid(
             column=5, row=10, sticky='e', **options_small)
         btn_play = ttk.Button(lf_present, text="Play", command=self._on_play)
         btn_play.grid(column=10, row=10, sticky='w', **options_small)
         btn_play.focus()
 
 
+        ########################
         # SLM reading controls #
-        # SLM Reading 
-        lbl_slm = ttk.Label(lf_record, text="SLM Reading (dB):").grid(
+        ########################
+        # SLM reading entry box
+        ttk.Label(lf_record, text="SLM Reading (dB):").grid(
             column=5, row=15, sticky='e', **options_small)
         self.ent_slm = ttk.Entry(lf_record, textvariable=self.sessionpars['slm_cal_value'],
             width=6, state='disabled')
@@ -112,6 +133,13 @@ class CalibrationDialog(tk.Toplevel):
         self.btn_submit.grid(column=5, columnspan=10, row=20, **options_small)
 
 
+    #############
+    # FUNCTIONS #
+    #############
+    def _set_cal_val(self):
+        """ Enable calibration controls for last method used 
+            (i.e., wgn or custom file)
+        """
         if self.sessionpars['Calibration File'].get() == 'cal_stim.wav':
             self.cal_var.set('wgn')
             self._set_custom_cntrls_status('disabled')
@@ -120,15 +148,8 @@ class CalibrationDialog(tk.Toplevel):
             self.cal_path.set(os.path.basename(
                 self.sessionpars['Calibration File'].get()))
             self._set_custom_cntrls_status('enabled')
-            
-
-        # Center calibration window dialog
-        self.center_window()
 
 
-    #############
-    # FUNCTIONS #
-    #############
     def center_window(self):
         """ Center window based on new size
         """
@@ -149,7 +170,8 @@ class CalibrationDialog(tk.Toplevel):
 
 
     def _set_custom_cntrls_status(self, state):
-        """ Enable or disable custom cal file controls"""
+        """ Enable or disable custom cal file controls
+        """
         self.lbl_calfile1.config(state=state)
         self.lbl_calfile2.config(state=state)
         self.btn_browse.config(state=state)
@@ -172,6 +194,8 @@ class CalibrationDialog(tk.Toplevel):
             # Disable custom file controls
             self._set_custom_cntrls_status('disabled')
 
+        print(f"Cal file from cal dialog: {self.sessionpars['Calibration File'].get()}")
+
 
     def _load_cal(self):
         """ File dialog for custom calibration file
@@ -182,8 +206,8 @@ class CalibrationDialog(tk.Toplevel):
 
 
     def _on_play(self):
-        """ Send play event to controller and 
-            enable SLM value entry controls
+        """ Send play event to controller and enable SLM value 
+            entry controls
         """
         print(f"Using calibration file: " +
             f"{self.sessionpars['Calibration File'].get()}")
@@ -195,6 +219,6 @@ class CalibrationDialog(tk.Toplevel):
     def _on_submit(self):
         """ Send save SLM value event to controller
         """
-        print("\nView_Cal_89: Sending save calibration event...")
+        print("\nViews_Cal_210: Sending save calibration event...")
         self.parent.event_generate('<<CalibrationSubmit>>')
         self.destroy()

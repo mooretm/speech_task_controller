@@ -1,4 +1,6 @@
-""" Class for storing list of audio files.
+""" Model for loading and subsetting audio and sentence files.
+
+    Written by: Travis M. Moore
 """
 
 ###########
@@ -33,58 +35,43 @@ class StimulusList:
 
 
     def load(self):
-        # Call functions in order
+        """ Controller to call task functions 
+            in the proper order.
+        """
+        # Retrieve specified list number(s)
         self._get_list_nums()
+        # Load and subset sentences
+        # Must occur before audio call
         self._get_sentences()
+        # Load and subset audio files
+        # Based on sentence call
         self._get_audio_files()
 
 
     def _get_list_nums(self):
-        # Get list numbers as integers
+        """ Get list numbers as integers.
+        """
         self.lists = self.sessionpars['List Number'].get().split()
         self.lists = [int(val) for val in self.lists]
 
 
-    def _get_audio_files(self):
-        ###############
-        # Audio Files #
-        ###############
-        # Check whether audio directory exists
-        print("Models_listmodel_51: Checking for audio files dir...")
-        if not os.path.exists(self.sessionpars['Audio Files Path'].get()):
-            print("Models_listmodel_53: Not a valid audio files directory!")
-            messagebox.showerror(
-                title='Directory Not Found!',
-                message="Cannot find the audio file directory!\n" +
-                "Please choose another file path."
-            )
-        # If a valid directory has been given, 
-        # get the audio file paths and names
-        glob_pattern = os.path.join(self.sessionpars['Audio Files Path'].get(), '*.wav')
-        # Create audio paths dataframe
-        self.audio_df = pd.DataFrame(glob(glob_pattern), columns=['path'])
-        self.audio_df['file_num'] = self.audio_df['path'].apply(lambda x: x.split(os.sep)[-1][:-4])
-        self.audio_df['file_num'] = self.audio_df['file_num'].astype(int)
-        self.audio_df = self.audio_df.sort_values(by=['file_num'])
-        #self.audio_df = self.audio_df.loc[self.audio_df['file_num'].isin(self.sentence_df['sentence_num'])].reset_index()
-        self.audio_df = self.audio_df.loc[self.audio_df['file_num'].isin(self.sentence_df['sentence_num'])]
-        print(self.audio_df)
-        print("Models_list_model_69: Audio list dataframe loaded into listmodel")
-
-
+    #############
+    # Sentences #
+    #############
     def _get_sentences(self):
-        ##################
-        # Sentence Files #
-        ##################
+        """ Open sentences file and load contents into dataframe. 
+            Subset by specified list number(s) from session info.
+        """
         # Check whether sentence directory exists
-        print("Models_listmodel_77: Checking for sentences dir...")
+        print("Models_listmodel_66: Checking for sentences dir...")
         if not os.path.exists(self.sessionpars['Sentence File Path'].get()):
-            print("Models_listmodel_79: Not a valid 'sentences' file directory!")
+            print("Models_listmodel_68: Not a valid 'sentences' file directory!")
             messagebox.showerror(
                 title='Directory Not Found!',
                 message="Cannot find the 'sentence' file directory!\n" + 
                 "Please choose another file path."
             )
+
         # If a valid directory has been given, 
         # get a list of sentence files
         glob_pattern = os.path.join(self.sessionpars['Sentence File Path'].get(), '*.csv')
@@ -97,7 +84,43 @@ class StimulusList:
             )
         # Read sentence file into dataframe
         s = pd.read_csv(sentence_file[0])
+
         # Get sentences for specified list numbers
         self.sentence_df = s.loc[s['list_num'].isin(self.lists)].reset_index()
         print(self.sentence_df)
-        print("Models_listmodel_100: Sentence list dataframe loaded into listmodel")
+        print("Models_listmodel_91: Sentence list dataframe loaded into listmodel")
+
+
+    ###############
+    # Audio Files #
+    ###############
+    def _get_audio_files(self):
+        """ Load in files as full paths. Select files based 
+            on sentences data frame.
+        """
+        # Check whether audio directory exists
+        print("Models_listmodel_102: Checking for audio files dir...")
+        if not os.path.exists(self.sessionpars['Audio Files Path'].get()):
+            print("Models_listmodel_104: Not a valid audio files directory!")
+            messagebox.showerror(
+                title='Directory Not Found!',
+                message="Cannot find the audio file directory!\n" +
+                "Please choose another file path."
+            )
+
+        # If a valid directory has been given, 
+        # get the audio file paths and names
+        glob_pattern = os.path.join(self.sessionpars['Audio Files Path'].get(), '*.wav')
+        # Create audio paths dataframe
+        self.audio_df = pd.DataFrame(glob(glob_pattern), columns=['path'])
+        # Create new column based on file names (which are numbered)
+        self.audio_df['file_num'] = self.audio_df['path'].apply(lambda x: x.split(os.sep)[-1][:-4])
+        # Convert to integers
+        self.audio_df['file_num'] = self.audio_df['file_num'].astype(int)
+        # Sort ascending by new column of integers
+        self.audio_df = self.audio_df.sort_values(by=['file_num'])
+
+        # Subset based on sentence dataframe values
+        self.audio_df = self.audio_df.loc[self.audio_df['file_num'].isin(self.sentence_df['sentence_num'])]
+        print(self.audio_df)
+        print("Models_listmodel_126: Audio list dataframe loaded into listmodel")

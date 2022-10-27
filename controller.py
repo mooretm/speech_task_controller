@@ -1,8 +1,14 @@
-""" Presentation controller
+""" Speech Task Controller is a flexible program for presenting speech
+    corpi (e.g., IEEE) and providing word-level and custom scoring ability.
+
+    Simply provide a master list of sentences (with the proper formatting)
+    and an audio file directory (with properly-named files) for a given 
+    speech corpus. Score using check boxes. Trial data are output as a 
+    .csv file. 
 
     Written by: Travis M. Moore
     Created: 23 Jun, 2022
-    Last edited: 25 Oct, 2022
+    Last edited: 27 Oct, 2022
 """
 
 ###########
@@ -18,12 +24,11 @@ from tkinter import messagebox
 
 # Import data science packages
 import numpy as np
-import pandas as pd
 
 # Import custom modules
-from lib import tmsignals as ts
-import importlib 
-importlib.reload(ts) # Reload custom module on every run
+#from lib import tmsignals as ts
+#import importlib 
+#importlib.reload(ts) # Reload custom module on every run
 # Menu imports
 from menus import mainmenu as menu_main
 # Model imports
@@ -50,7 +55,7 @@ class Application(tk.Tk):
 
         # Root window settings
         self.withdraw() 
-        self.title("Presentation Controller")
+        self.title("Speech Task Controller")
         self.resizable(False, False)
 
         # Dictionary to track values per trial
@@ -75,7 +80,6 @@ class Application(tk.Tk):
         # Create and load list model
         self.listmodel = m_list.StimulusList(self.sessionpars)
         self.listmodel.load()
-        #messagebox.showinfo(title="Debug", message="App initialized!")
 
         # Create score model
         self.scoremodel = m_score.ScoreModel()
@@ -86,8 +90,8 @@ class Application(tk.Tk):
         self.main_frame.grid()
 
         # Create menus
-        menu = menu_main.MainMenu(self)
-        self.config(menu=menu)
+        self.menu = menu_main.MainMenu(self)
+        self.config(menu=self.menu)
 
         # Create callback dictionary
         event_callbacks = {
@@ -112,8 +116,8 @@ class Application(tk.Tk):
             # Mainframe commands
             '<<SubmitResponse>>': lambda _: self._on_main_submit(),
             '<<MainDone>>': lambda _: self._main_done(),
-            '<<GetLevel>>': lambda _: self._calc_level()
-            #'<<SaveRecord>>': lambda _: self._on_save()
+            '<<GetLevel>>': lambda _: self._calc_level(),
+            '<<MainStart>>': lambda _: self._disable_mnu()
         }
 
         # Bind callbacks to sequences
@@ -161,24 +165,32 @@ class Application(tk.Tk):
     ########################
     # Main Frame Functions #
     ########################
+    def _disable_mnu(self):
+        """ Disable FILE>Session... menu once task has started
+        """
+        self.menu.file_menu.entryconfig('Session...', state='disabled')
+
+
     def _on_main_submit(self):
+        """ Display, track and write response data to file
+        """
         # Provide feedback to the console
         print(f"\nTrial {self.scoremodel.fields['Trial']}:")
-        print(f"Level: {self.sessionpars['Presentation Level'].get()} (dB)")
+        print(f"Level: {self.sessionpars['new_db_lvl'].get()} (dB)")
         print(f"Correct: {self.scoremodel.fields['Words Correct']}")
         print(f"Incorrect: {self.scoremodel.fields['Words Incorrect']}")
         print(f"Outcome code: {self.scoremodel.fields['Outcome']}\n")
 
         # Track values for summary at end
-        self.tracker['Level'].append(self.sessionpars['Presentation Level'].get())
+        self.tracker['Level'].append(self.sessionpars['new_db_lvl'].get())
         self.tracker['PC Word'].append(self.scoremodel.fields['Num Words Correct'])
         self.tracker['PC Custom'].append(self.scoremodel.fields['Outcome'])
 
         # Call save function
-        self._on_save()
+        self._main_save()
         
         
-    def _on_save(self):
+    def _main_save(self):
         """ Format values and send to csv model
         """
         # Get tk variable values from sessionpars
@@ -206,7 +218,7 @@ class Application(tk.Tk):
         num_possible_words = len(self.scoremodel.fields['Words Correct'].split()) + len(self.scoremodel.fields['Words Incorrect'].split())
         #print(f'Words per sentence: {num_possible_words}')
         #print(f"Total words correct: {np.sum(self.tracker['PC Word'])}")
-        snr50 = round(np.mean(self.tracker['Level']), 2)
+        mean_lvl = round(np.mean(self.tracker['Level']), 2)
         print(f"Tracker list of levels: {self.tracker['Level']}")
         pc_word = round((np.sum(self.tracker['PC Word']) / (len(self.tracker['PC Custom'] * num_possible_words))) * 100, 2)
         pc_custom = round((np.sum(self.tracker['PC Custom']) / len(self.tracker['PC Custom'])) * 100, 2)
@@ -215,7 +227,7 @@ class Application(tk.Tk):
         messagebox.showinfo(
             title='Done!',
             message='Summary',
-            detail=f'SNR 50: {snr50} dB\n' +
+            detail=f'Mean Level: {mean_lvl} dB\n' +
                 f'Percent Correct (Word): {pc_word}%\n' +
                 f'Percent Correct (Custom): {pc_custom}%'
         )
@@ -254,22 +266,16 @@ class Application(tk.Tk):
 
 
     def _save_sessionpars(self, *_):
-        """ Save current runtime parameters to file 
+        """ Save current runtime parameters to file.
+            Update session info labels with new parameters.
         """
         print("\nApp_266: Calling sessionpar model set and save funcs...")
         for key, variable in self.sessionpars.items():
             self.sessionpars_model.set(key, variable.get())
             self.sessionpars_model.save()
 
-        #self.main_frame.subject_var.set('Subject: ' + self.sessionpars['Subject'].get())
-        #self.main_frame.condition_var.set('Condition: ' + self.sessionpars['Condition'].get())
-        #self.main_frame.level_var.set('Level: ' + self.sessionpars['Presentation Level'].get())
-        #self.main_frame.list_var.set('List(s): ' + self.sessionpars['List Number'].get())
-        #self.main_frame.speaker_var.set('Speaker: ' + str(self.sessionpars['Speaker Number'].get()))
-        #self.main_frame.trial_var.set('Trial: NA of NA')
-
-        # Load in the audio and sentence files
-        #self.listmodel.load()
+        # Update session info labels
+        self.main_frame._update_labels()
 
 
     ##########################
@@ -286,6 +292,8 @@ class Application(tk.Tk):
     # Calibration Dialog Functions #
     ################################
     def _show_calibration_dialog(self):
+        """ Show calibration dialog
+        """
         print("\nApp_296: Calling calibration dialog...")
         v_cal.CalibrationDialog(self, self.sessionpars)
 
@@ -296,16 +304,10 @@ class Application(tk.Tk):
         # Calculate SLM offset
         print("\nApp_304: Calculating new presentation level...")
         self.sessionpars['slm_offset'].set(self.sessionpars['slm_cal_value'].get() - self.sessionpars['raw_lvl'].get())
-        # Provide console feedback
-        print(f"SLM reading: {self.sessionpars['slm_cal_value'].get()}")
-        print(f"Raw level: {self.sessionpars['raw_lvl'].get()}")
-        print(f"SLM offset: {self.sessionpars['slm_offset'].get()}")
-
         # Calculate new raw level
         self.sessionpars['new_raw_lvl'].set(
-            self.sessionpars['Presentation Level'].get() - self.sessionpars['slm_offset'].get())
+            self.sessionpars['new_db_lvl'].get() - self.sessionpars['slm_offset'].get())
         print(f"New raw level: {self.sessionpars['new_raw_lvl'].get()}")
-
         # Calculate new corresponding dB level
         self.sessionpars['new_db_lvl'].set(
             self.sessionpars['slm_offset'].get() + self.sessionpars['new_raw_lvl'].get())
@@ -316,26 +318,40 @@ class Application(tk.Tk):
 
 
     def _play_calibration(self):
-        """ Load calibration file and present
+        """ Load and present calibration stimulus
         """
         # Check for default calibration stimulus request
         if self.sessionpars['Calibration File'].get() == 'cal_stim.wav':
             # Create calibration audio object
             try:
                 # If running from compiled, look in compiled temporary location
+                print("Looking for cal file in temp location: compiled version")
                 cal_file = self.resource_path('cal_stim.wav')
-                cal_stim = m_audio.Audio(cal_file, self.sessionpars['Raw Level'].get())
+                cal_stim = m_audio.Audio(cal_file, self.sessionpars['raw_lvl'].get())
             except FileNotFoundError:
                 # If running from command line, look in assets folder
+                print("Looking for cal file in assets folder: script version")
                 cal_file = '.\\assets\\cal_stim.wav'
-                cal_stim = m_audio.Audio(cal_file, self.sessionpars['Raw Level'].get())
+                try:
+                    cal_stim = m_audio.Audio(cal_file, self.sessionpars['raw_lvl'].get())
+                except FileNotFoundError:
+                    print("Default calibration file not found!")
+                    messagebox.showerror(title="File Not Found",
+                        message="File not found! Please try again.")
+                    return
         else: # Custom calibration file was provided
-            print("App_336: Reading provided calibration file...")
-            cal_stim = m_audio.Audio(self.sessionpars['Calibration File'].get(), 
-                self.sessionpars['Raw Level'].get())
+            print("App_336: Looking for provided custom calibration file...")
+            try:
+                cal_stim = m_audio.Audio(self.sessionpars['Calibration File'].get(), 
+                    self.sessionpars['raw_lvl'].get())
+                print("Custom calibration file found!")
+            except FileNotFoundError:
+                messagebox.showerror(title="File Not Found",
+                    message="File not found! Please try again.")
+                return
 
         # Present calibration stimulus
-        print("App_341: Playing calibration file...")
+        print("App_341: Attempting to play calibration file...")
         cal_stim.play(device_id=self.sessionpars['Audio Device ID'].get(), 
             channels=self.sessionpars['Speaker Number'].get())
 

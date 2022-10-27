@@ -1,4 +1,6 @@
-""" Audio dialog
+""" Audio dialog for Speech Task Controller
+
+    Written by: Travis M. Moore
 """
 
 ###########
@@ -26,6 +28,7 @@ class AudioDialog(tk.Toplevel):
         self.parent = parent
         self.sessionpars = sessionpars
 
+        # Set up window
         self.withdraw()
         self.focus()
         self.title("Audio")
@@ -78,9 +81,9 @@ class AudioDialog(tk.Toplevel):
 
 
     def center_window(self):
-        # Center window based on new size
+        """ Center window based on new size
+        """
         self.update_idletasks()
-        #root.attributes('-topmost',1)
         window_width = self.winfo_width()
         window_height = self.winfo_height()
         # get the screen dimension
@@ -96,6 +99,9 @@ class AudioDialog(tk.Toplevel):
 
 
     def _on_submit(self):
+        """ Send event to controller to save entered audio dialog values.
+            Close dialog.
+        """
         print("\nView_Audio_99: Sending save audio config event...")
         self.parent.event_generate('<<AudioDialogSubmit>>')
         self.destroy()

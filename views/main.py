@@ -11,6 +11,9 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
 
+# Import data science packages
+import numpy as np
+
 # Import text packages
 import string # for creating alphabet list
 
@@ -22,20 +25,26 @@ from models import audiomodel as a
 # BEGIN #
 #########
 class MainFrame(ttk.Frame):
-    def __init__(self, parent, scoremodel, sessionpars, listmodel, *args, **kwargs):
+    def __init__(self, parent, scoremodel, sessionpars, listmodel, 
+    *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         # Initialize
         self.scoremodel = scoremodel
         self.sessionpars = sessionpars
         self.listmodel = listmodel
-        #self.first = True
         self.counter = 0
         self.outcome = None
 
         # Set widget display options
         self.myFont = tk.font.nametofont('TkDefaultFont').configure(size=10)
         options = {'padx':10, 'pady':10}
+
+        style = ttk.Style()
+        style.configure('Start.TButton', 
+            font=('TkDefaultFont', 10, 'bold'), 
+            foreground='green',
+            background='black')
 
 
         #################
@@ -66,25 +75,12 @@ class MainFrame(ttk.Frame):
         # Session info labels #
         #######################
         # Create session info label textvariables for updating
-        self.subject_var = tk.StringVar(
-            value='Subject: ' + self.sessionpars['Subject'].get())
-        self.condition_var = tk.StringVar(
-            value='Condition: ' + self.sessionpars['Condition'].get())
-        #self.level_var = tk.StringVar(
-        #    value='Level: ' + str(self.sessionpars['Presentation Level'].get()))
-        self.list_var = tk.StringVar(
-            value='List(s): ' + self.sessionpars['List Number'].get())
-        self.speaker_var = tk.StringVar(
-            value='Speaker: ' + str(self.sessionpars['Speaker Number'].get()))
-        self.trial_var = tk.StringVar(value='Trial: NA of NA')
-
-        # Add traces to label textvariables for automatic syncing
-        self.subject_var.trace_add('write', self._update_labels)
-        self.condition_var.trace_add('write', self._update_labels)
-        #self.level_var.trace_add('write', self._update_labels)
-        self.list_var.trace_add('write', self._update_labels)
-        self.speaker_var.trace_add('write', self._update_labels)
-        #self.trial_var.trace_add('write', self._update_labels)
+        self.subject_var = tk.StringVar(value="Subject:")
+        self.condition_var = tk.StringVar(value="Condition:")
+        self.level_var = tk.StringVar(value="Level:")
+        self.list_var = tk.StringVar(value="List:")
+        self.speaker_var = tk.StringVar(value="Speaker:")
+        self.trial_var = tk.StringVar(value="Trial:")
 
         # Plot session info labels
         # Subject
@@ -93,15 +89,15 @@ class MainFrame(ttk.Frame):
         # Condition
         ttk.Label(self.frm_params, 
             textvariable=self.condition_var).grid(sticky='w')
-        # Level
-        #ttk.Label(self.frm_params, 
-        #   textvariable=self.level_var).grid(sticky='w')
         # Speaker number
         ttk.Label(self.frm_params, 
            textvariable=self.speaker_var).grid(sticky='w')
          # List number(s)  
         ttk.Label(self.frm_params, 
             textvariable=self.list_var).grid(sticky='w')
+        # Level
+        ttk.Label(self.frm_params, 
+           textvariable=self.level_var).grid(sticky='w')
         # Trial number
         ttk.Label(self.frm_params, 
             textvariable=self.trial_var).grid(sticky='w')
@@ -112,8 +108,9 @@ class MainFrame(ttk.Frame):
         #################
         # "Start" button
         self.btn_start = ttk.Button(frm_main, text='Start',
-            command=self._on_start)
-        self.btn_start.grid(column=7, row=15, rowspan=2)
+            command=self._on_start, style='Start.TButton')
+        self.btn_start.grid(column=7, row=15, rowspan=6, 
+            sticky='nsew', pady=(0,10))
 
         # "Right" button
         self.btn_right = ttk.Button(frm_main, text='Right', state='disabled', 
@@ -126,12 +123,14 @@ class MainFrame(ttk.Frame):
         self.btn_wrong.grid(column=5, row=20, pady=(0,10))
 
         # "Right" step size entry
-        self.right_var = tk.DoubleVar(value=0.0)
+        #self.right_var = tk.DoubleVar()
+        self.right_var = tk.StringVar()
         ent_right = ttk.Entry(frm_main, textvariable=self.right_var, width=5)
         ent_right.grid(column=6, row=15, sticky='w', pady=(0,10))
 
         # "Wrong" step size entry
-        self.wrong_var = tk.DoubleVar(value=0.0)
+        #self.wrong_var = tk.DoubleVar()
+        self.wrong_var = tk.StringVar()
         ent_wrong = ttk.Entry(frm_main, textvariable=self.wrong_var, width=5)
         ent_wrong.grid(column=6, row=20, sticky='w', pady=(0,10))
 
@@ -152,6 +151,9 @@ class MainFrame(ttk.Frame):
                 textvariable=self.text_vars[idx], font=self.myFont)
             self.lbl_word.grid(column=idx, row=0)
             self.word_labels.append(self.lbl_word)
+
+        # Set temporary instructions text in the first word label
+        self.text_vars[0].set("Click the START button to begin...")
 
         # Create list of checkbuttons for displaying beneath key words
         self.chk_vars = list(string.ascii_uppercase)
@@ -174,9 +176,17 @@ class MainFrame(ttk.Frame):
 
 
     def _update_labels(self, *_):
-        """ Dummy function required by trace to update parameter labels
+        """ Update session info labels
         """
-        pass
+        try:
+            self.subject_var.set(f"Subject: {self.sessionpars['Subject'].get()}")
+            self.condition_var.set(f"Condition: {self.sessionpars['Condition'].get()}")
+            self.speaker_var.set(f"Speaker: {self.sessionpars['Speaker Number'].get()}")
+            self.list_var.set(f"List(s): {self.sessionpars['List Number'].get()}")
+            self.level_var.set(f"Level: {self.sessionpars['new_db_lvl'].get()}")
+            self.trial_var.set(f"Trial: {self.counter+1} of {len(self.sentence_df)}")
+        except AttributeError:
+            print("Views_Main_189: Cannot calculate trials data: stimuli not yet loaded!")
 
 
     ####################
@@ -185,6 +195,17 @@ class MainFrame(ttk.Frame):
     def _on_start(self):
         """ Display/present first trial
         """
+        # Check for step size values
+        if not self.right_var.get() or not self.wrong_var.get():
+            messagebox.showerror(title="Invalid Step Size",
+                message="Please enter right/wrong step sizes to continue!\n\n" +
+                    "Note: Enter zeros for a fixed presentation level.")
+            return
+
+        # Send event to controller to disable session menu
+        # once task has started
+        self.event_generate('<<MainStart>>')
+
         # Clean up buttons
         self.btn_start.grid_remove()
         self.btn_right.config(state='enabled')
@@ -193,8 +214,8 @@ class MainFrame(ttk.Frame):
         # Load stimulus lists
         self._load_listmodel()
 
-        # Update trial label
-        self.trial_var.set(f"Trial {self.counter+1} of {len(self.sentence_df)}")
+        # Update session info labels after loading listmodel
+        self._update_labels()
 
         # Display first sentence and present first audio file
         self._display()
@@ -210,7 +231,7 @@ class MainFrame(ttk.Frame):
         self.outcome = 0
 
         # Call series of task functions (same as _on_right)
-        self._next2()
+        self._next()
 
 
     def _on_right(self):
@@ -222,13 +243,13 @@ class MainFrame(ttk.Frame):
         self.outcome = 1
 
         # Call series of task functions (same as _on_wrong)
-        self._next2()
+        self._next()
 
 
     ###########################
     # Task process controller #
     ###########################
-    def _next2(self):
+    def _next(self):
         """ Control the order of operations after right/wrong 
             buttons have assigned response outcome.
         """
@@ -243,8 +264,8 @@ class MainFrame(ttk.Frame):
         # Update trial counter
         self.counter += 1
         # Update trial label
-        self.trial_var.set(f"Trial {self.counter+1} of {len(self.sentence_df)}")
-        # Display new word labels and checkbuttons
+        self.trial_var.set(f"Trial: {self.counter+1} of {len(self.sentence_df)}")
+        # Start next trial: display new word labels and checkbuttons
         self._display()
         self._play()
 
@@ -258,18 +279,19 @@ class MainFrame(ttk.Frame):
         """
         if self.outcome == 1:
             # Apply step size offset to presentation level
-            self.sessionpars['Presentation Level'].set(
-                self.sessionpars['Presentation Level'].get() - self.right_var.get()
+            self.sessionpars['new_db_lvl'].set(
+                self.sessionpars['new_db_lvl'].get() - float(self.right_var.get())
             )
         elif self.outcome == 0:
             # Apply step size offset to presentation level
-            self.sessionpars['Presentation Level'].set(
-                self.sessionpars['Presentation Level'].get() + self.wrong_var.get()
-                )
+            self.sessionpars['new_db_lvl'].set(
+                self.sessionpars['new_db_lvl'].get() + float(self.wrong_var.get())
+            )
         else:
             messagebox.showerror(
                 title="Uh oh!",
-                message="Something went wrong setting the level! Aborting!"
+                message="Cannot calculate new level with invalid score!\n" + 
+                    "Aborting!\n\nError: Views_Main_294"
             )
             self.quit()
 
@@ -281,6 +303,26 @@ class MainFrame(ttk.Frame):
         self.event_generate('<<GetLevel>>')
 
 
+    def _enable_btns(self):
+        """ Set right/wrong button state to ENABLED
+            Set right/wrong text to right/wrong
+        """
+        self.btn_right.config(state='enabled')
+        self.btn_wrong.config(state='enabled')
+        self.btn_right.config(text="Right")
+        self.btn_wrong.config(text="Wrong")
+
+
+    def _disable_btns(self):
+        """ Set right/wrong button state to DISABLED
+            Set right/wrong text to: Presenting
+        """
+        self.btn_right.config(state='disabled')
+        self.btn_wrong.config(state='disabled')
+        self.btn_right.config(text="Presenting")
+        self.btn_wrong.config(text="Presenting")
+
+
     def _play(self):
         """ Load next audio file and present it.
         """
@@ -288,13 +330,27 @@ class MainFrame(ttk.Frame):
             # Create audio object
             audio = a.Audio(self.audio_df.iloc[self.counter]['path'], 
                 self.sessionpars['new_raw_lvl'].get())
+
+            # Disable right/wrong buttons to prevent multiple clicks
+            self._disable_btns()
+            # Update tasks is required before playing audio
+            # for _disable_btns to update the GUI
+            self.update()
+
             # Present audio
             audio.play(
                 device_id=self.sessionpars['Audio Device ID'].get(),
                 channels=self.sessionpars['Speaker Number'].get()
                 )
+    
+            # Re-enable buttons after audio has finished playing
+            # NOTE: .after expects an integer duration in ms
+            self.after((int(np.ceil(audio.dur)))*1000, self._enable_btns)
+
         except KeyError:
-            print("Audio file does not exist!")
+            messagebox.showerror(title="Cannot Find File",
+                message="Requested audio file does not exist!")
+            print("Views_Main_354: Audio file does not exist!")
 
 
     ##################################
@@ -342,13 +398,10 @@ class MainFrame(ttk.Frame):
         """ Get words marked correct and incorrect, update 
             scoremodel, and send event to controller.
         """
-        # Don't try scoring on first click (start)
-        #if self.counter != 0:
-            # Get correct words
+        # Get correct words
         correct = []
         for idx, value in enumerate(self.chk_vars):
             if value.get() != 0:
-                #print(f" Correct: {self.words[idx]}")
                 correct.append(self.words[idx])
 
         # Get incorrect words
@@ -356,7 +409,7 @@ class MainFrame(ttk.Frame):
         incorrect = list(set(self.words).difference(correct))
         # Only take capitalized words
         incorrect = [word for word in incorrect if word.isupper()]
-        # Remove 'A' if it exists
+        # Remove 'A' if it exists (never a key word, but can be capital)
         try:
             incorrect.remove('A')
         except ValueError:
@@ -365,7 +418,8 @@ class MainFrame(ttk.Frame):
 
         # Update scoremodel with values
         self.scoremodel.fields['Words Correct'] = ' '.join(correct)
-        self.scoremodel.fields['Num Words Correct'] = len(self.scoremodel.fields['Words Correct'].split())
+        self.scoremodel.fields['Num Words Correct'] = len(
+            self.scoremodel.fields['Words Correct'].split())
         self.scoremodel.fields['Words Incorrect'] = ' '.join(incorrect)
         self.scoremodel.fields['Trial'] = self.counter + 1
         self.scoremodel.fields['Outcome'] = self.outcome

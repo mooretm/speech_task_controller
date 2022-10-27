@@ -5,6 +5,11 @@
 ###########
 # Imports #
 ###########
+#"Chunk (non-data) not understood, skipping it."
+import warnings
+warnings.filterwarnings(action='ignore', category=UserWarning)
+
+
 # Import data science packages
 import numpy as np
 
@@ -14,6 +19,8 @@ import os
 # Import audio packages
 import sounddevice as sd
 from scipy.io import wavfile
+
+
 
 
 #########
@@ -41,14 +48,19 @@ class Audio:
         self.level = level
 
         # Read audio file
-        fs, audio_file = wavfile.read(self.file_path)
+        try:
+            fs, audio_file = wavfile.read(self.file_path)
+        except FileNotFoundError:
+            print("Audio_Model_47: Audio file not found!")
+            raise FileNotFoundError
+            return
 
         # Get number of channels
         try:
             self.channels = audio_file.shape[1]
         except IndexError:
             self.channels = 1
-        print(f"Number of channels: {self.channels}")
+        print(f"\nNumber of channels: {self.channels}")
 
         # Assign audio file attributes
         self.fs = fs

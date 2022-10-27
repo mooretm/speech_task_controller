@@ -1,4 +1,6 @@
-""" Main Menu class for Presentation Controller 
+""" Main Menu class for Speech Task Controller 
+
+    Written by: Travis M. Moore
 """
 
 # Import GUI packages
@@ -21,17 +23,17 @@ class MainMenu(tk.Menu):
         super().__init__(parent, **kwargs)
 
         # File menu
-        file_menu = tk.Menu(self, tearoff=False)
-        file_menu.add_command(
+        self.file_menu = tk.Menu(self, tearoff=False)
+        self.file_menu.add_command(
             label="Session...",
             command=self._event('<<FileSession>>')
         )
-        file_menu.add_separator()
-        file_menu.add_command(
+        self.file_menu.add_separator()
+        self.file_menu.add_command(
             label="Quit",
             command=self._event('<<FileQuit>>')
         )
-        self.add_cascade(label='File', menu=file_menu)
+        self.add_cascade(label='File', menu=self.file_menu)
 
         # Tools menu
         tools_menu = tk.Menu(self, tearoff=False)
@@ -57,13 +59,14 @@ class MainMenu(tk.Menu):
 
 
     def show_about(self):
-        """ Show the about dialog """
-        about_message = 'Presentation Controller'
+        """ Show the about dialog 
+        """
+        about_message = 'Speech Task Controller'
         about_detail = (
             'Written by: Travis M. Moore\n'
             'Version 2.0.0\n'
             'Created: Jun 23, 2022\n'
-            'Last Edited: Oct 25, 2022'
+            'Last Edited: Oct 27, 2022'
         )
         messagebox.showinfo(
             title='About',
