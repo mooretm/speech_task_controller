@@ -165,14 +165,32 @@ class MainFrame(ttk.Frame):
             self.word_chks.append(self.chk_word)
 
 
+        #####################
+        # Check for stimuli #
+        #####################
+        # Load stimuli from listmodel
+        self._load_listmodel()
+
+
     #####################
     # General functions #
     #####################
     def _load_listmodel(self):
         """ Load in current stimulus lists from listmodel
         """
-        self.audio_df = self.listmodel.audio_df
-        self.sentence_df = self.listmodel.sentence_df
+        try:
+            self.audio_df = self.listmodel.audio_df
+            self.sentence_df = self.listmodel.sentence_df
+        except AttributeError:
+            print("Views_Main_178: Problem loading stimuli!")
+            messagebox.showerror(title="Restart Required",
+                message="Go to File -> Session to provide valid paths " + 
+                "to stimuli\n " + "then close and restart the application.")
+            # Provide instructions to give path and restart in sentence label
+            self._reset()
+            self.text_vars[0].set("Please provide stimulus paths and restart.")
+            # Open session dialog for user
+            self.event_generate('<<FileSession>>')
 
 
     def _update_labels(self, *_):
@@ -211,7 +229,8 @@ class MainFrame(ttk.Frame):
         self.btn_right.config(state='enabled')
         self.btn_wrong.config(state='enabled')
 
-        # Load stimulus lists
+        # Load stimulus lists again
+        # Required if no stimuli were available on init
         self._load_listmodel()
 
         # Update session info labels after loading listmodel
@@ -338,19 +357,30 @@ class MainFrame(ttk.Frame):
             self.update()
 
             # Present audio
-            audio.play(
-                device_id=self.sessionpars['Audio Device ID'].get(),
-                channels=self.sessionpars['Speaker Number'].get()
-                )
-    
+            try:
+                audio.play(
+                    device_id=self.sessionpars['Audio Device ID'].get(),
+                    channels=self.sessionpars['Speaker Number'].get()
+                    )
+            except ValueError:
+                # Show error messagebox
+                messagebox.showerror(title="Invalid Audio Device",
+                    message="Please provide a valid audio device ID!")
+                # Give instructions in sentence label
+                self._reset()
+                self.text_vars[0].set("Please restart the application " +
+                    "to apply changes.")
+                # Open audio device dialog for user
+                self.event_generate('<<ToolsAudioSettings>>')
+
             # Re-enable buttons after audio has finished playing
             # NOTE: .after expects an integer duration in ms
             self.after((int(np.ceil(audio.dur)))*1000, self._enable_btns)
-
         except KeyError:
             messagebox.showerror(title="Cannot Find File",
                 message="Requested audio file does not exist!")
             print("Views_Main_354: Audio file does not exist!")
+            return
 
 
     ##################################

@@ -79,7 +79,10 @@ class Application(tk.Tk):
 
         # Create and load list model
         self.listmodel = m_list.StimulusList(self.sessionpars)
-        self.listmodel.load()
+        try:
+            self.listmodel.load()
+        except FileNotFoundError:
+            pass
 
         # Create score model
         self.scoremodel = m_score.ScoreModel()

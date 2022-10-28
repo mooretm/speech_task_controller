@@ -66,11 +66,12 @@ class StimulusList:
         print("Models_listmodel_66: Checking for sentences dir...")
         if not os.path.exists(self.sessionpars['Sentence File Path'].get()):
             print("Models_listmodel_68: Not a valid 'sentences' file directory!")
-            messagebox.showerror(
-                title='Directory Not Found!',
-                message="Cannot find the 'sentence' file directory!\n" + 
-                "Please choose another file path."
-            )
+            #messagebox.showerror(
+            #    title='Directory Not Found!',
+            #    message="Cannot find the 'sentence' file directory!\n" + 
+            #    "Please choose another file path."
+            #)
+            raise FileNotFoundError
 
         # If a valid directory has been given, 
         # get a list of sentence files

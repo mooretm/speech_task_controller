@@ -1,4 +1,12 @@
 ########################
+2022-10-28 Version 2.0.0
+########################
+Complete refactoring of code to OOP. New logic for 
+handling word display and scoring. More flexible 
+calibration dialog. 
+
+
+########################
 2022-06-08 Version 1.1.1
 ########################
 Bug fix. Corrected issue where presentation level 

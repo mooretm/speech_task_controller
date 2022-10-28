@@ -5,3 +5,4 @@ audio/
 calibration/
 .idea/
 *.csv
+output/

@@ -25,11 +25,10 @@ class SessionParsModel:
         'Speaker Number': {'type': 'int', 'value': 1},
         'Audio Files Path': {'type': 'str', 'value': 'Please select a path'},
         'Sentence File Path': {'type': 'str', 'value': 'Please select a path'},
-        'Audio Device ID': {'type': 'int', 'value': 999},
+        'Audio Device ID': {'type': 'int', 'value': None},
         'raw_lvl': {'type': 'float', 'value': -30},
         'slm_cal_value': {'type': 'float', 'value': 65},
         'slm_offset': {'type': 'float', 'value': 95.0},
-        #'Adjusted Presentation Level': {'type': 'float', 'value': -30},
         'new_raw_lvl': {'type': 'float', 'value': -30},
         'new_db_lvl': {'type': 'float', 'value': 65},
         'Calibration File': {'type': 'str', 'value': 'cal_stim.wav'}
