@@ -1,4 +1,4 @@
-#**Speech Task Controller**
+# **Speech Task Controller**
 
 ---
 
@@ -9,7 +9,7 @@ Graphical user interface (GUI) for presenting and scoring speech tasks.
 - Last edited: **October 31, 2022**
 <br><br>
 
-##Description
+## Description
 
 ---
 
