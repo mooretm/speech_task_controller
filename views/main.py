@@ -153,7 +153,7 @@ class MainFrame(ttk.Frame):
             self.word_labels.append(self.lbl_word)
 
         # Set temporary instructions text in the first word label
-        self.text_vars[0].set("Click the START button to begin...")
+        self.text_vars[0].set("Click the START button to begin.")
 
         # Create list of checkbuttons for displaying beneath key words
         self.chk_vars = list(string.ascii_uppercase)
@@ -181,14 +181,16 @@ class MainFrame(ttk.Frame):
         try:
             self.audio_df = self.listmodel.audio_df
             self.sentence_df = self.listmodel.sentence_df
+            self.text_vars[0].set("Click the START button to begin.")
         except AttributeError:
             print("Views_Main_178: Problem loading stimuli!")
-            messagebox.showerror(title="Restart Required",
-                message="Go to File -> Session to provide valid paths " + 
-                "to stimuli\n " + "then close and restart the application.")
+            #messagebox.showerror(title="Restart Required",
+            #    message="Go to File -> Session to provide valid paths " + 
+            #    "to stimuli\n " + "then close and restart the application.")
             # Provide instructions to give path and restart in sentence label
             self._reset()
-            self.text_vars[0].set("Please provide stimulus paths and restart.")
+            self.text_vars[0].set("Stimuli not found!\nGo to File-->Session to provide stimulus paths.")
+
             # Open session dialog for user
             self.event_generate('<<FileSession>>')
 
@@ -229,9 +231,16 @@ class MainFrame(ttk.Frame):
         self.btn_right.config(state='enabled')
         self.btn_wrong.config(state='enabled')
 
+        # Reset trial counter to 0
+        self.counter = 0
+
         # Load stimulus lists again
         # Required if no stimuli were available on init
         self._load_listmodel()
+
+        # Load starting level based on value specified in session dialog.
+        self.sessionpars['new_db_lvl'].set(
+            self.sessionpars['Presentation Level'].get())
 
         # Update session info labels after loading listmodel
         self._update_labels()
@@ -332,14 +341,14 @@ class MainFrame(ttk.Frame):
         self.btn_wrong.config(text="Wrong")
 
 
-    def _disable_btns(self):
+    def _disable_btns(self, btntext):
         """ Set right/wrong button state to DISABLED
             Set right/wrong text to: Presenting
         """
         self.btn_right.config(state='disabled')
         self.btn_wrong.config(state='disabled')
-        self.btn_right.config(text="Presenting")
-        self.btn_wrong.config(text="Presenting")
+        self.btn_right.config(text=btntext)
+        self.btn_wrong.config(text=btntext)
 
 
     def _play(self):
@@ -351,7 +360,7 @@ class MainFrame(ttk.Frame):
                 self.sessionpars['new_raw_lvl'].get())
 
             # Disable right/wrong buttons to prevent multiple clicks
-            self._disable_btns()
+            self._disable_btns("Presenting")
             # Update tasks is required before playing audio
             # for _disable_btns to update the GUI
             self.update()
@@ -372,6 +381,12 @@ class MainFrame(ttk.Frame):
                     "to apply changes.")
                 # Open audio device dialog for user
                 self.event_generate('<<ToolsAudioSettings>>')
+                # Disable right/wrong buttons
+                self._disable_btns("Ready")
+                # Restore START button
+                self.btn_start.grid(column=7, row=15, rowspan=6, 
+                    sticky='nsew', pady=(0,10))
+                return
 
             # Re-enable buttons after audio has finished playing
             # NOTE: .after expects an integer duration in ms

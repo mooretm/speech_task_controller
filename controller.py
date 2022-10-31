@@ -8,7 +8,7 @@
 
     Written by: Travis M. Moore
     Created: 23 Jun, 2022
-    Last edited: 27 Oct, 2022
+    Last edited: 31 Oct, 2022
 """
 
 ###########
@@ -57,6 +57,7 @@ class Application(tk.Tk):
         self.withdraw() 
         self.title("Speech Task Controller")
         self.resizable(False, False)
+        self.grab_set()
 
         # Dictionary to track values per trial
         # Used to calculate summary stats
@@ -278,6 +279,8 @@ class Application(tk.Tk):
             self.sessionpars_model.save()
 
         # Update session info labels
+        self.listmodel.load()
+        self.main_frame._load_listmodel()
         self.main_frame._update_labels()
 
 

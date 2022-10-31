@@ -1,4 +1,23 @@
 ########################
+2022-10-31 Version 2.0.1
+########################
+Minor bug fixes:
+  1. Last used level was reloaded as starting level
+     when restarting app without using session 
+     dialog (which assigns new_db_lvl according to 
+     entered level.
+  2. Directory browser dialog title now states the 
+     type of path it wants (e.g., "Audio File 
+     Directory").
+  3. Removed messagebox on startup without a saved 
+     parameters file. Instead, the sentence label
+     provides instructions. 
+  4. No longer have to restart when stimulus paths
+     and/or audio id weren't given before clicking
+     START button.
+
+
+########################
 2022-10-28 Version 2.0.0
 ########################
 Complete refactoring of code to OOP. New logic for 

@@ -122,14 +122,16 @@ class SessionDialog(tk.Toplevel):
         """ Ask user to specify audio files directory and 
             store it in sessionpars
         """
-        self.sessionpars['Audio Files Path'].set(filedialog.askdirectory())
+        self.sessionpars['Audio Files Path'].set(
+            filedialog.askdirectory(title="Audio File Directory"))
 
 
     def _get_sentence_directory(self):
         """ Ask user to specify sentence file and store
             it in sessionpars
         """
-        self.sessionpars['Sentence File Path'].set(filedialog.askdirectory())
+        self.sessionpars['Sentence File Path'].set(
+            filedialog.askdirectory(title="Sentence File Directory"))
 
 
     def _on_submit(self):

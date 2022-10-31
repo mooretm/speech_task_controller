@@ -64,9 +64,9 @@ class MainMenu(tk.Menu):
         about_message = 'Speech Task Controller'
         about_detail = (
             'Written by: Travis M. Moore\n'
-            'Version 2.0.0\n'
+            'Version 2.0.1\n'
             'Created: Jun 23, 2022\n'
-            'Last Edited: Oct 27, 2022'
+            'Last Edited: Oct 31, 2022'
         )
         messagebox.showinfo(
             title='About',

@@ -40,12 +40,16 @@ class StimulusList:
         """
         # Retrieve specified list number(s)
         self._get_list_nums()
-        # Load and subset sentences
-        # Must occur before audio call
-        self._get_sentences()
-        # Load and subset audio files
-        # Based on sentence call
-        self._get_audio_files()
+
+        try:
+            # Load and subset sentences
+            # Must occur before audio call
+            self._get_sentences()
+            # Load and subset audio files
+            # Based on sentence call
+            self._get_audio_files()
+        except FileNotFoundError:
+            print("Models_Listmodel_52: Cannot find stimuli!")
 
 
     def _get_list_nums(self):
