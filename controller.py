@@ -8,7 +8,7 @@
 
     Written by: Travis M. Moore
     Created: 23 Jun, 2022
-    Last edited: 31 Oct, 2022
+    Last edited: 2 Nov, 2022
 """
 
 ###########
@@ -26,9 +26,6 @@ from tkinter import messagebox
 import numpy as np
 
 # Import custom modules
-#from lib import tmsignals as ts
-#import importlib 
-#importlib.reload(ts) # Reload custom module on every run
 # Menu imports
 from menus import mainmenu as menu_main
 # Model imports
@@ -212,7 +209,14 @@ class Application(tk.Tk):
 
         # Save data
         print('App_206: Calling save record function...')
-        self.csvmodel.save_record(data)
+        try:
+            self.csvmodel.save_record(data)
+        except PermissionError():
+            messagebox.showerror(title="Save Failed!",
+                message="Could not save data to file!",
+                detail="Please make sure the file isn't open and that you " +
+                    "have write permission."
+            )
 
 
     def _main_done(self):

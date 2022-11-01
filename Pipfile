@@ -11,6 +11,8 @@ sounddevice = "*"
 matplotlib = "*"
 pandastable = "*"
 auto-py-to-exe = "*"
+tkpdfviewer = "*"
+markdown = "*"
 
 [dev-packages]
 

@@ -2,15 +2,31 @@
 
 ---
 
+## v2.1.0
+
+Date: 2 Nov, 2022
+
+### Major Features
+1. New help file system. The README file is now a markdown file. A new "help" menu option will now convert the README.md file into an html file. The README.html file is then displayed in the default browser.
+
+### Minor Features
+1. A message box now alerts the user when data are not successfully saved to file on each occurrence. 
+<br>
+<br>
+
+---
+
 ## v2.0.1  
 
 Date: 31 Oct, 2022 
 
-### Minor Bug Fixes
+### Major Bug Fixes
 1. Last used level was reloaded as starting level when restarting app without using session dialog (which assigns new_db_lvl according to entered level).
-2. Directory browser dialog title now states the type of path it wants (e.g., "Audio File Directory").
-3. Removed messagebox on startup without a saved parameters file. Instead, the sentence label provides instructions.
-4. No longer have to restart when stimulus paths and/or audio id weren't given before clicking the START button.
+
+### Minor Features
+1. Directory browser dialog title now states the type of path it wants (e.g., "Audio File Directory").
+2. Removed messagebox on startup without a saved parameters file. Instead, the sentence label provides instructions.
+3. No longer have to restart when stimulus paths and/or audio id weren't given before clicking the START button.
 <br>
 <br>
 
@@ -20,7 +36,7 @@ Date: 31 Oct, 2022
 
 Date: 28 Oct, 2022
 
-### Major Changes
+### Major Features
 1. Complete refactoring of code to OOP. 
 2. New logic for handling word display and scoring. 
 3. More flexible calibration and session dialogs. 
@@ -33,7 +49,7 @@ Date: 28 Oct, 2022
 
 Date: 08 Jun, 2022
 
-### Minor Bug Fixes
+### Major Bug Fixes
 1. Corrected issue where presentation level changes lagged behind the user-indicated level while in adaptive mode. 
 <br>
 <br>
@@ -44,7 +60,7 @@ Date: 08 Jun, 2022
 
 Date: 07 Jun, 2022
 
-### Major Feature Added
+### Major Features
 1. Added "audiometer-like" controls that allow for increasing/decreasing level on a per trial basis. Essentially provides manual adaptive functionality. 
 <br>
 <br>

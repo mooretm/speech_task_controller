@@ -3,10 +3,21 @@
     Written by: Travis M. Moore
 """
 
+###########
+# Imports #
+###########
 # Import GUI packages
 import tkinter as tk
 from tkinter import messagebox
 
+# Import misc packages
+import webbrowser
+import markdown
+
+
+#########
+# BEGIN #
+#########
 class MainMenu(tk.Menu):
     """ Main Menu
     """
@@ -54,6 +65,10 @@ class MainMenu(tk.Menu):
             label='About',
             command=self.show_about
         )
+        help_menu.add_command(
+            label='Help',
+            command=self.show_help
+        )
         # Add help menu to the menubar
         self.add_cascade(label="Help", menu=help_menu)
 
@@ -64,12 +79,29 @@ class MainMenu(tk.Menu):
         about_message = 'Speech Task Controller'
         about_detail = (
             'Written by: Travis M. Moore\n'
-            'Version 2.0.1\n'
+            'Version 2.1.0\n'
             'Created: Jun 23, 2022\n'
-            'Last Edited: Oct 31, 2022'
+            'Last Edited: Nov 2, 2022'
         )
         messagebox.showinfo(
             title='About',
             message=about_message,
             detail=about_detail
         )
+
+
+    def show_help(self):
+        """ Create html help file and display 
+            in default browser
+        """
+        # Read markdown file and convert to html
+        with open('README.md', 'r') as f:
+            text = f.read()
+            html = markdown.markdown(text)
+
+        # Create html file for display
+        with open('README.html', 'w') as f:
+            f.write(html)
+
+        # Open html file in default browser
+        webbrowser.open('README.html')

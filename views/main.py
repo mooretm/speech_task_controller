@@ -409,9 +409,10 @@ class MainFrame(ttk.Frame):
         try:
             # Get next sentence and split into a list of words
             self.words = self.sentence_df.loc[
-                self.counter, 'ieee_text'].split()
+                self.counter, 'sentence'].split()
             # Remove period from last word
-            self.words[-1] = self.words[-1][:-1]
+            if self.words[-1][-1] == '.':
+                self.words[-1] = self.words[-1][:-1]
 
             # Display words and checkboxes
             for idx, word in enumerate(self.words):
