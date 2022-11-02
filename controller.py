@@ -25,6 +25,10 @@ from tkinter import messagebox
 # Import data science packages
 import numpy as np
 
+# Import misc packages
+import webbrowser
+import markdown
+
 # Import custom modules
 # Menu imports
 from menus import mainmenu as menu_main
@@ -104,6 +108,9 @@ class Application(tk.Tk):
             '<<ToolsAudioSettings>>': lambda _: self._show_audio_dialog(),
             '<<ToolsCalibration>>': lambda _: self._show_calibration_dialog(),
 
+            # Help menu
+            '<<Help>>': lambda _: self._show_help(),
+
             # Session dialog commands
             '<<SessionSubmit>>': lambda _: self._save_sessionpars(),
 
@@ -161,6 +168,35 @@ class Application(tk.Tk):
         """ Exit the application
         """
         self.destroy()
+
+
+    #######################
+    # Help menu functions #
+    #######################
+    def _show_help(self):
+        """ Create html help file and display 
+            in default browser
+        """
+        ################################
+        # Uncomment for script version #
+        ################################
+        # # Read markdown file and convert to html
+        # with open('README.md', 'r') as f:
+        #     text = f.read()
+        #     html = markdown.markdown(text)
+
+        # # Create html file for display
+        # with open('.\\assets\\README\\README.html', 'w') as f:
+        #     f.write(html)
+
+        # # Open README in default web browser
+        # webbrowser.open('.\\assets\\README\\README.html')
+
+        ##################################
+        # Uncomment for compiled version #
+        ##################################
+        help_file = self.resource_path('README\\README.html')
+        webbrowser.open(help_file)
 
 
     ########################

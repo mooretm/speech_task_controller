@@ -10,10 +10,6 @@
 import tkinter as tk
 from tkinter import messagebox
 
-# Import misc packages
-import webbrowser
-import markdown
-
 
 #########
 # BEGIN #
@@ -67,7 +63,7 @@ class MainMenu(tk.Menu):
         )
         help_menu.add_command(
             label='Help',
-            command=self.show_help
+            command=self._event('<<Help>>')
         )
         # Add help menu to the menubar
         self.add_cascade(label="Help", menu=help_menu)
@@ -88,20 +84,3 @@ class MainMenu(tk.Menu):
             message=about_message,
             detail=about_detail
         )
-
-
-    def show_help(self):
-        """ Create html help file and display 
-            in default browser
-        """
-        # Read markdown file and convert to html
-        with open('README.md', 'r') as f:
-            text = f.read()
-            html = markdown.markdown(text)
-
-        # Create html file for display
-        with open('README.html', 'w') as f:
-            f.write(html)
-
-        # Open html file in default browser
-        webbrowser.open('README.html')
