@@ -174,29 +174,28 @@ class Application(tk.Tk):
     # Help menu functions #
     #######################
     def _show_help(self):
-        """ Create html help file and display 
-            in default browser
+        """ Create html help file and display in default browser
         """
-        ################################
-        # Uncomment for script version #
-        ################################
-        # # Read markdown file and convert to html
-        # with open('README.md', 'r') as f:
-        #     text = f.read()
-        #     html = markdown.markdown(text)
-
-        # # Create html file for display
-        # with open('.\\assets\\README\\README.html', 'w') as f:
-        #     f.write(html)
-
-        # # Open README in default web browser
-        # webbrowser.open('.\\assets\\README\\README.html')
-
-        ##################################
-        # Uncomment for compiled version #
-        ##################################
+        print('Looking for help file in compiled version temp location...')
         help_file = self.resource_path('README\\README.html')
-        webbrowser.open(help_file)
+        file_exists = os.access(help_file, os.F_OK)
+        if not file_exists:
+            print('Not found!\nChecking for help file in ' +
+                'local script version location')
+            # Read markdown file and convert to html
+            with open('README.md', 'r') as f:
+                text = f.read()
+                html = markdown.markdown(text)
+
+            # Create html file for display
+            with open('.\\assets\\README\\README.html', 'w') as f:
+                f.write(html)
+
+            # Open README in default web browser
+            webbrowser.open('.\\assets\\README\\README.html')
+        else:
+            help_file = self.resource_path('README\\README.html')
+            webbrowser.open(help_file)
 
 
     ########################
@@ -287,7 +286,7 @@ class Application(tk.Tk):
         """ Show session parameter dialog
         """
         print("\nApp_240: Calling session dialog...")
-        v_sess.SessionDialog(self, self.sessionpars)
+        v_sess.SessionDialog(self, self.sessionpars, self.sessionpars_model)
 
 
     def _load_sessionpars(self):

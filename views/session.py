@@ -16,10 +16,11 @@ from tkinter import filedialog
 class SessionDialog(tk.Toplevel):
     """ Dialog for setting session parameters
     """
-    def __init__(self, parent, sessionpars, *args, **kwargs):
+    def __init__(self, parent, sessionpars, sessionmodel, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
         self.parent = parent
         self.sessionpars = sessionpars
+        self.sessionmodel = sessionmodel
 
         # Window setup
         self.withdraw()

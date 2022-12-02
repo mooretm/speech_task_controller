@@ -222,6 +222,10 @@ class MainFrame(ttk.Frame):
                     "Note: Enter zeros for a fixed presentation level.")
             return
 
+        # Calculate new dB FS level from current 
+        # new_db_lvl value in sessionpars
+        self._get_level()
+
         # Send event to controller to disable session menu
         # once task has started
         self.event_generate('<<MainStart>>')
@@ -356,6 +360,8 @@ class MainFrame(ttk.Frame):
         """
         try:
             # Create audio object
+            print(f"Views_Main_363: Raw level sent to audio object: " +
+                f"{self.sessionpars['new_raw_lvl'].get()}")
             audio = a.Audio(self.audio_df.iloc[self.counter]['path'], 
                 self.sessionpars['new_raw_lvl'].get())
 

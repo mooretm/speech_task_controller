@@ -3,8 +3,8 @@
 Graphical user interface (GUI) for presenting and scoring speech tasks.
 
 - Written by: **Travis M. Moore**
-- Latest version: **Version 2.1.0**
-- Last edited: **November 2, 2022**
+- Latest version: **Version 2.1.1**
+- Last edited: **December 02, 2022**
 <br>
 <br>
 

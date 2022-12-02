@@ -2,6 +2,15 @@
 
 ---
 
+## v2.1.1
+
+Date: Dec 02, 2022
+
+### Minor Bug Fixes
+1. Fixed bug where first level presented (in dB FS) was not calculated from the new presentation level specified in the sessionpars view. The displayed level (new_db_lvl) was updated, but the dB FS level was not calculated when the START button was clicked (only when the NEXT button was clicked). 
+
+---
+
 ## v2.1.0
 
 Date: 2 Nov, 2022
