@@ -209,6 +209,15 @@ The data .csv file stores the following information on each trial:
 
 ---
 
+## Rebuilding from Source
+```
+pyinstaller --noconfirm --onefile --windowed --add-data "C:/Users/MooTra/Code/Python/speech_task_gui/assets/cal_stim.wav;." --add-data "C:/Users/MooTra/Code/Python/speech_task_gui/assets/README;README/"  "C:/Users/MooTra/Code/Python/speech_task_gui/controller.py"
+```
+<br>
+<br>
+
+---
+
 ## Contact
 Please use the contact information below to submit bug reports, feature requests and any other feedback. Thank you for using the Speech Task Controller!
 
