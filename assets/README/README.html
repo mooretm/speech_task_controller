@@ -2,8 +2,8 @@
 <p>Graphical user interface (GUI) for presenting and scoring speech tasks.</p>
 <ul>
 <li>Written by: <strong>Travis M. Moore</strong></li>
-<li>Latest version: <strong>Version 2.1.1</strong></li>
-<li>Last edited: <strong>December 02, 2022</strong>
+<li>Latest version: <strong>Version 2.1.2</strong></li>
+<li>Last edited: <strong>December 07, 2022</strong>
 <br>
 <br></li>
 </ul>
@@ -151,6 +151,8 @@ Note: Step sizes are in decibels.</p>
 <hr />
 <h2>Scoring</h2>
 <p>Sentences will be presented one-by-one from the list(s) entered in the Session window. The sentence text will be displayed in the "Sentence" section of the main screen. Check boxes will appear beneath each key word in the sentence. Click the check box if the participant correctly identified the word, otherwise leave the checkbox blank.</p>
+<p>As a convenience, you can click the SELECT ALL button to select every checkbox automatically. </p>
+<p>If you need to repeat the audio presentation of the current sentence, you can click the REPEAT button to present the audio again, without scoring or increasing the trial number. </p>
 <!-- <img src="./assets/images/scoring.png" alt="Scoring image" width="600"/> -->
 <p><img src="scoring.png" alt="Scoring image" width="600"/></p>
 <p>After selecting the appropriate check boxes, click either the RIGHT or WRONG button. You are free to click whichever button you wish without defining any special scoring criteria. A running count of each time the RIGHT and WRONG buttons is pressed is kept and recorded for scoring. This record is displayed as the percent correct in a message box once the task has finished, labeled as <strong>Percent Correct (Custom)</strong>.</p>
@@ -183,7 +185,7 @@ Note: Step sizes are in decibels.</p>
 <br></li>
 </ul>
 <hr />
-<h2>Rebuilding from Source</h2>
+<h2>Compiling from Source</h2>
 <p><code>pyinstaller --noconfirm --onefile --windowed --add-data "C:/Users/MooTra/Code/Python/speech_task_gui/assets/cal_stim.wav;." --add-data "C:/Users/MooTra/Code/Python/speech_task_gui/assets/README;README/"  "C:/Users/MooTra/Code/Python/speech_task_gui/controller.py"</code>
 <br>
 <br></p>

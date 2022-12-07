@@ -3,8 +3,8 @@
 Graphical user interface (GUI) for presenting and scoring speech tasks.
 
 - Written by: **Travis M. Moore**
-- Latest version: **Version 2.1.1**
-- Last edited: **December 02, 2022**
+- Latest version: **Version 2.1.2**
+- Last edited: **December 07, 2022**
 <br>
 <br>
 
@@ -169,6 +169,10 @@ Note: Step sizes are in decibels.
 ## Scoring
 Sentences will be presented one-by-one from the list(s) entered in the Session window. The sentence text will be displayed in the "Sentence" section of the main screen. Check boxes will appear beneath each key word in the sentence. Click the check box if the participant correctly identified the word, otherwise leave the checkbox blank.
 
+As a convenience, you can click the SELECT ALL button to select every checkbox automatically. 
+
+If you need to repeat the audio presentation of the current sentence, you can click the REPEAT button to present the audio again, without scoring or increasing the trial number. 
+
 <!-- <img src="./assets/images/scoring.png" alt="Scoring image" width="600"/> -->
 <img src="scoring.png" alt="Scoring image" width="600"/>
 
@@ -209,7 +213,7 @@ The data .csv file stores the following information on each trial:
 
 ---
 
-## Rebuilding from Source
+## Compiling from Source
 ```
 pyinstaller --noconfirm --onefile --windowed --add-data "C:/Users/MooTra/Code/Python/speech_task_gui/assets/cal_stim.wav;." --add-data "C:/Users/MooTra/Code/Python/speech_task_gui/assets/README;README/"  "C:/Users/MooTra/Code/Python/speech_task_gui/controller.py"
 ```

@@ -2,6 +2,16 @@
 
 ---
 
+## v2.1.2
+
+Date: Dec 07, 2022
+
+### Minor Features
+1. Added "Select All" button as a convenience to select all key word checkboxes automatically.
+2. Added a repeat button that plays the current audio again, without incrementing the audio list or scoring. 
+
+---
+
 ## v2.1.1
 
 Date: Dec 02, 2022

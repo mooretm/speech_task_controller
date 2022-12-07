@@ -46,6 +46,11 @@ class MainFrame(ttk.Frame):
             foreground='green',
             background='black')
 
+        style.configure('Repeat.TButton', 
+            font=('TkDefaultFont', 10, 'bold'), 
+            foreground='black',
+            background='black')
+
 
         #################
         # Create frames #
@@ -112,6 +117,17 @@ class MainFrame(ttk.Frame):
         self.btn_start.grid(column=7, row=15, rowspan=6, 
             sticky='nsew', pady=(0,10))
 
+        # "Repeat" button
+        self.btn_repeat = ttk.Button(frm_main, text='Repeat',
+            command=self._on_repeat, style='Repeat.TButton',
+            takefocus=0)
+        # NOTE: Only place widget when START is clicked
+
+        # "Select All" button
+        self.btn_select_all = ttk.Button(frm_main, text="Select All", 
+            state='disabled', command=self._on_select_all, takefocus=0)
+        self.btn_select_all.grid(column=5, row=8, pady=(0,10))
+
         # "Right" button
         self.btn_right = ttk.Button(frm_main, text='Right', state='disabled', 
             command=self._on_right)
@@ -125,13 +141,15 @@ class MainFrame(ttk.Frame):
         # "Right" step size entry
         #self.right_var = tk.DoubleVar()
         self.right_var = tk.StringVar()
-        ent_right = ttk.Entry(frm_main, textvariable=self.right_var, width=5)
+        ent_right = ttk.Entry(frm_main, textvariable=self.right_var, 
+            width=5, takefocus=0)
         ent_right.grid(column=6, row=15, sticky='w', pady=(0,10))
 
         # "Wrong" step size entry
         #self.wrong_var = tk.DoubleVar()
         self.wrong_var = tk.StringVar()
-        ent_wrong = ttk.Entry(frm_main, textvariable=self.wrong_var, width=5)
+        ent_wrong = ttk.Entry(frm_main, textvariable=self.wrong_var, 
+            width=5, takefocus=0)
         ent_wrong.grid(column=6, row=20, sticky='w', pady=(0,10))
 
         # Level step size label
@@ -232,8 +250,12 @@ class MainFrame(ttk.Frame):
 
         # Clean up buttons
         self.btn_start.grid_remove()
+        self.btn_select_all.config(state='enabled')
         self.btn_right.config(state='enabled')
         self.btn_wrong.config(state='enabled')
+        # Show REPEAT button
+        self.btn_repeat.grid(column=7, row=15, rowspan=6, 
+        sticky='nsew', pady=(0,10))
 
         # Reset trial counter to 0
         self.counter = 0
@@ -251,6 +273,25 @@ class MainFrame(ttk.Frame):
 
         # Display first sentence and present first audio file
         self._display()
+        self._play()
+
+
+    def _on_select_all(self):
+        """ Select all checkboxes convenience function
+        """
+        print("Views_Main_281: Selected all checkboxes")
+
+        for ii in self.keyword_chks:
+            self.chk_vars[ii].set(1)
+        #for val in self.chk_vars:
+        #    val.set(1)
+
+
+    def _on_repeat(self):
+        """ Repeat the current sentence without scoring or 
+            advancing the sentence counter
+        """
+        print("Views_Main_276: Repeat current sentence")
         self._play()
 
 
@@ -412,6 +453,9 @@ class MainFrame(ttk.Frame):
             each key word (capitalized). Underline each 
             key word.
         """
+        # Track indexes of key word checkboxes for 
+        # select all
+        self.keyword_chks = []
         try:
             # Get next sentence and split into a list of words
             self.words = self.sentence_df.loc[
@@ -429,6 +473,7 @@ class MainFrame(ttk.Frame):
                         font=('TkDefaultFont 10 underline'))
                     # Checkboxes
                     self.word_chks[idx].grid(column=idx, row=1)
+                    self.keyword_chks.append(idx)
                 else:
                     # Words
                     self.text_vars[idx].set(word)
